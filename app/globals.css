@@ -1,17 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b; /* zinc-950 */
-  --foreground: #fafafa; /* zinc-50 */
+  --base: #0B0F14;
+  --surface: #111823;
+  --card: #162030;
+  --text-1: #EAF0F6;
+  --text-2: #A7B0BC;
+  --text-faint: #6B7684;
+  --primary: #35D07F;
+  --primary-hover: #2BB56B;
+  --primary-glow: rgba(53, 208, 137, 0.20);
+  --status-success: #35D07F;
+  --status-info: #F5C451;
+  --status-error: #FF5C5C;
+  --status-accent-blue: #4DA3FF;
+  
+  --radius-xl2: 1rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
   --font-sans: var(--font-inter);
+  
+  --color-base: var(--base);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-glow: var(--primary-glow);
+  
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-faint: var(--text-faint);
+  
+  --color-status-success: var(--status-success);
+  --color-status-info: var(--status-info);
+  --color-status-error: var(--status-error);
+  --color-status-accent-blue: var(--status-accent-blue);
+  
+  --radius-xl2: var(--radius-xl2);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--base);
+  color: var(--text-1);
+  font-style: normal;
 }

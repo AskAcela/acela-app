@@ -1,0 +1,32 @@
+"use client";
+
+import Modal from "./Modal";
+import GoogleIcon from "./GoogleIcon";
+
+interface AuthModalProps {
+  open: boolean;
+  onClose: () => void;
+  onContinueWithGoogle?: () => void;
+}
+
+export default function AuthModal({ open, onClose, onContinueWithGoogle }: AuthModalProps) {
+  return (
+    <Modal open={open} onClose={onClose}>
+      <div className="text-center mb-6">
+        <h2 className="text-text-1 text-2xl md:text-3xl font-extrabold mb-3">Log in or sign up</h2>
+        <p className="text-text-2 text-sm md:text-base">
+          You&apos;ll get smarter responses and can share, see chat history, and more.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={onContinueWithGoogle}
+        className="w-full flex items-center justify-center gap-3 rounded-2xl bg-card border border-white/5 px-4 py-3.5 text-text-1 text-base font-medium hover:bg-white/5 transition-colors"
+      >
+        <GoogleIcon className="h-5 w-5" />
+        Continue with google
+      </button>
+    </Modal>
+  );
+}
