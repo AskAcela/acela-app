@@ -93,13 +93,13 @@ export default function HomePage({
         <main className="flex-1 flex flex-col items-center justify-center px-4 md:pb-24 md:pb-32">
           <div className="w-full h-full max-w-2xl flex justify-between md:justify-center flex-col items-center">
             <div className="pt-10 md:pt-0 md:hidden"> </div>
-            <div className="flex flex-col items-center gap-3 mb-8">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-4 mb-8">
+              <div className="flex items-center">
                 <AcelaLogo size={30} className="md:hidden mb-1" />
-                <AcelaLogo size={38} className="hidden mb-2 md:block" /><span className="text-[28px] font-extrabold tracking-[10px]">cela</span>
+                <AcelaLogo size={38} className="hidden mb-2 md:block" />
               </div>
-              <h1 className="text-text-1 text-center text-[28px] md:text-4xl">
-                {session?.user ? ('Welcome, ' + session?.user?.name) : "What’s on your mind today?"}
+              <h1 className="bg-gradient-to-r from-text-1 to-text-1/60 bg-clip-text text-center text-[28px] font-bold text-transparent tracking-tight">
+                What’s on your mind today?
               </h1>
             </div>
 

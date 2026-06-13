@@ -20,7 +20,7 @@ export default function ModePill({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`inline-flex items-center gap-2 rounded-x10 border px-4 py-2.5 text-sm font-medium transition-colors
+      className={`inline-flex items-center gap-2 rounded-x10 border px-3 md:px-4 py-2.5 text-sm font-medium transition-colors
         ${
           active
             ? "bg-primary text-base border-primary"

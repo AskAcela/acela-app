@@ -27,8 +27,8 @@ export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAu
         <Menu className="h-6 w-6" strokeWidth={1.75} />
       </button>
 
-      <div className="flex-1 flex justify-center">
-        <div className="inline-flex items-center gap-4 rounded-x10 bg-card px-5 py-3 text-sm">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 z-50">
+        <div className="inline-flex items-center gap-4 rounded-b-x10 bg-card px-4 py-2 text-sm shadow-md">
           <span className="text-text-1 font-medium">{plan}</span>
           {onUpgradeClick ? (
             <button
