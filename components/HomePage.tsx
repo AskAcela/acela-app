@@ -3,26 +3,21 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Lightbulb, HelpCircle, Compass } from "lucide-react";
-import AcelaLogo from "./AcelaLogo";
+import AuthModal from "./modals/AuthModal";
+import AcelaLogo from "./icons/AcelaLogo";
 import ModePill from "./ModePill";
 import ChatInput from "./ChatInput";
 import TopBar from "./TopBar";
-import { AppMode, ModeOption, RecentChat, User } from "./types";
+import { AppMode, ModeOption, RecentChat, SessionUser } from "../types";
 import SidebarNav from "./SidebarNav";
 import BillingModal from "./BillingModal";
+import { useSession } from "next-auth/react";
 
 const modeOptions: ModeOption[] = [
   { id: "idea", label: "Idea mode", icon: Lightbulb },
   { id: "ask", label: "Ask mode", icon: HelpCircle },
   { id: "explore", label: "Explore", icon: Compass },
 ];
-
-const defaultUser: User = {
-  name: "Aizen",
-  plan: "Free Plan",
-  avatarUrl:
-    "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces",
-};
 
 const defaultRecentChats: RecentChat[] = [
   { id: "1", title: "What's Acela all about" },
@@ -31,20 +26,22 @@ const defaultRecentChats: RecentChat[] = [
 ];
 
 interface HomePageProps {
-  user?: User;
+  user?: SessionUser;
   recentChats?: RecentChat[];
   hasHistory?: boolean;
 }
 
 export default function HomePage({
-  user = defaultUser,
   recentChats = defaultRecentChats,
   hasHistory = false,
 }: HomePageProps) {
+  const { data: session, status: sessionStatus } = useSession();
+  console.log("session", session);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [activeMode, setActiveMode] = useState<AppMode | null>(null);
   const [billingOpen, setBillingOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const searchParams = useSearchParams();
   const modeParam = searchParams.get("mode") as AppMode | null;
@@ -69,30 +66,42 @@ export default function HomePage({
     setMessage("");
   };
 
+  if (sessionStatus === "loading") {
+    return <div className="h-screen w-screen bg-base flex items-center justify-center text-text-2">Loading...</div>; // or skeleton
+  }
+
+  const openAuthModal = () => {
+    setAuthOpen(true);
+  }
+
   return (
     <div className="flex h-screen bg-base overflow-hidden">
-      <SidebarNav recentChats={recentChats} user={user} activeChatId={hasHistory ? recentChats[0]?.id : undefined} onMobileClose={() => setSidebarOpen(false)} mobileOpen={sidebarOpen} defaultOpen={false} onSelectChat={(id) => { }} />
+      <SidebarNav recentChats={recentChats} user={session?.user ?? null} activeChatId={hasHistory ? recentChats[0]?.id : undefined} onMobileClose={() => setSidebarOpen(false)} mobileOpen={sidebarOpen} defaultOpen={false} onSelectChat={(id) => { }} openAuthModal={openAuthModal} />
 
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar
-          plan={user.plan}
+          plan={"Free Plan"}
           onMenuClick={() => setSidebarOpen(true)}
-          avatarUrl={user.avatarUrl}
+          user={session?.user ?? null}
           onUpgradeClick={() => setBillingOpen(true)}
+          openAuthModal={openAuthModal}
         />
 
-        <main className="flex-1 flex flex-col items-center justify-center px-4 pb-24 md:pb-32">
-          <div className="w-full max-w-2xl flex flex-col items-center">
-            <div className="flex items-center gap-3 mb-8">
-              <AcelaLogo size={40} className="md:hidden" />
-              <AcelaLogo size={48} className="hidden md:block" />
-              <h1 className="text-text-1 font-extrabold text-3xl md:text-5xl">
-                Welcome, {user.name}
+        <main className="flex-1 flex flex-col items-center justify-center px-4 md:pb-24 md:pb-32">
+          <div className="w-full h-full max-w-2xl flex justify-between md:justify-center flex-col items-center">
+            <div className="pt-10 md:pt-0 md:hidden"> </div>
+            <div className="flex flex-col items-center gap-3 mb-8">
+              <div className="flex items-center gap-2">
+                <AcelaLogo size={30} className="md:hidden" />
+                <AcelaLogo size={58} className="hidden md:block" /> <span className="text-[28px] font-extrabold">Acela</span>
+              </div>
+              <h1 className="text-text-1 text-center text-[28px] md:text-4xl">
+                {session?.user ? ('Welcome, ' + session?.user?.name) : "What’s on your mind today?"}
               </h1>
             </div>
 
             {/* Mobile: mode pills sit above the input. Desktop: below. */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-4 md:hidden">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-4 md:hidden">
               {modeOptions.map((mode) => (
                 <ModePill
                   key={mode.id}
@@ -102,18 +111,27 @@ export default function HomePage({
                   onClick={() => handleModeClick(mode.id)}
                 />
               ))}
+              <ChatInput
+                value={message}
+                onChange={setMessage}
+                onSubmit={handleSubmit}
+                activeMode={activeModeOption}
+                onClearMode={() => setActiveMode(null)}
+                className="w-full"
+              />
             </div>
 
-            <ChatInput
-              value={message}
-              onChange={setMessage}
-              onSubmit={handleSubmit}
-              activeMode={activeModeOption}
-              onClearMode={() => setActiveMode(null)}
-              className="w-full"
-            />
+
 
             <div className="hidden md:flex flex-wrap items-center justify-center gap-3 mt-6">
+              <ChatInput
+                value={message}
+                onChange={setMessage}
+                onSubmit={handleSubmit}
+                activeMode={activeModeOption}
+                onClearMode={() => setActiveMode(null)}
+                className="w-full"
+              />
               {modeOptions.map((mode) => (
                 <ModePill
                   key={mode.id}
@@ -128,6 +146,7 @@ export default function HomePage({
         </main>
       </div>
       <BillingModal open={billingOpen} onClose={() => setBillingOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
 }

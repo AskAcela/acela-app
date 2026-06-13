@@ -3,15 +3,18 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { SessionUser } from "@/types";
+import { UserCircle2 } from "lucide-react";
 
 interface TopBarProps {
   plan: string;
   onMenuClick: () => void;
-  avatarUrl: string;
+  user: SessionUser | null;
   onUpgradeClick?: () => void;
+  openAuthModal: () => void;
 }
 
-export default function TopBar({ plan, onMenuClick, avatarUrl, onUpgradeClick }: TopBarProps) {
+export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAuthModal }: TopBarProps) {
   return (
     <div className="flex items-center justify-between px-4 py-4 md:px-6">
       <button
@@ -46,13 +49,15 @@ export default function TopBar({ plan, onMenuClick, avatarUrl, onUpgradeClick }:
       </div>
 
       <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 md:hidden relative">
-        <Image
-          src={avatarUrl}
-          alt="User avatar"
-          fill
-          className="object-cover"
-          unoptimized
-        />
+        {user ?
+          <Image
+            src={user?.image ?? "/logo.svg"}
+            alt="User avatar"
+            fill
+            className="object-cover"
+            unoptimized
+          /> : <UserCircle2 className="h-10 w-10 shrink-0 cursor-pointer" onClick={openAuthModal} />
+        }
       </div>
       <div className="hidden md:block w-10" />
     </div>

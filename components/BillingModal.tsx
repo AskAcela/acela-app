@@ -2,7 +2,7 @@
 
 import PlanCard from "./PlanCard";
 import { CircleBadge, HeptagonBadge, StarBadge } from "./PlanBadges";
-import Modal from "./Modal";
+import Modal from "./modals/Modal";
 
 interface BillingModalProps {
   open: boolean;
@@ -13,11 +13,11 @@ interface BillingModalProps {
 export default function BillingModal({ open, onClose, onSelectPlan }: BillingModalProps) {
   return (
     <Modal open={open} onClose={onClose} maxWidth="max-w-3xl md:max-w-5xl lg:max-w-7xl">
-      <div className="py-2 text-left">
+      <div className="py-2 text-center">
         <h1 className="text-text-1 text-3xl md:text-4xl font-extrabold mb-3">
           Get more out of ACELA
         </h1>
-        <p className="text-text-2 text-base md:text-lg mb-8 max-w-xl">
+        <p className="text-text-2 text-base md:text-lg mb-8 ">
           Pay-as-you-go freedom, buy exactly what you need with zero recurring monthly
           subscription.
         </p>

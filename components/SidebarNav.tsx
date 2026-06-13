@@ -14,20 +14,24 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import AcelaLogo from "./AcelaLogo";
-import { RecentChat, User } from "./types";
+import AcelaLogo from "./icons/AcelaLogo";
+import { RecentChat, SessionUser } from "../types";
+import { UserCircle2 } from "lucide-react"
 
 interface SidebarNavProps {
   recentChats: RecentChat[];
   activeChatId?: string;
   onSelectChat?: (id: string) => void;
-  user: User;
+  user: SessionUser | null;
   /** Controls the initial open/closed state on desktop. Defaults to closed (rail-only). */
   defaultOpen?: boolean;
   /** Mobile drawer open state — owned by parent (e.g. toggled from TopBar's hamburger). */
   mobileOpen: boolean;
   onMobileClose: () => void;
+  openAuthModal: () => void;
 }
+
+type RailId = "new-chat" | "idea" | "explore" | "ask" | "account";
 
 const navItems = [
   { id: "new-chat", icon: Plus, label: "New chat", href: "/" },
@@ -44,13 +48,23 @@ export default function SidebarNav({
   defaultOpen = false,
   mobileOpen,
   onMobileClose,
+  openAuthModal,
 }: SidebarNavProps) {
   // Desktop: panel open/closed beside the persistent rail.
   const [open, setOpen] = useState(defaultOpen);
   // Tracks which rail icon is "active" so the panel can highlight/scroll to it.
-  const [activeRailId, setActiveRailId] = useState<string | null>(null);
+  const [activeRailId, setActiveRailId] = useState<RailId | null>(null);
 
-  const handleRailClick = (id: string) => {
+  const handleRailClick = (id: RailId) => {
+    if (id == "account") {
+      console.log("account")
+      if (!user) {
+        openAuthModal();
+        return;
+      }
+      return;
+    }
+
     if (open && activeRailId === id) {
       // Clicking the active item again collapses the panel.
       setOpen(false);
@@ -144,10 +158,9 @@ export default function SidebarNav({
                         }
                       }}
                       className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
-                        ${
-                          chat.id === activeChatId
-                            ? "text-text-1 bg-white/5"
-                            : "text-text-2 hover:bg-white/5 hover:text-text-1"
+                        ${chat.id === activeChatId
+                          ? "text-text-1 bg-white/5"
+                          : "text-text-2 hover:bg-white/5 hover:text-text-1"
                         }`}
                     >
                       {chat.title}
@@ -159,29 +172,29 @@ export default function SidebarNav({
 
             {/* Footer / avatar */}
             <div
-              className={`flex items-center border-t border-white/5 pt-4 ${
-                open ? "px-4 gap-3" : "justify-center px-0"
-              }`}
+              className={`flex items-center border-t border-white/5 pt-4 ${open ? "px-4 gap-3" : "justify-center px-0"
+                }`}
             >
               <button
                 type="button"
                 onClick={() => handleRailClick("account")}
                 className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0"
-              >
+              >{user ?
                 <Image
-                  src={user.avatarUrl}
+                  src={user?.image ?? "/logo.svg"}
                   alt="User avatar"
                   fill
                   className="object-cover"
                   unoptimized
-                />
+                /> : <UserCircle2 className="h-10 w-10 shrink-0 cursor-pointer" />
+                }
               </button>
               {open && (
                 <div className="flex-1 min-w-0 flex items-center justify-between animate-in fade-in duration-200">
                   <div className="min-w-0">
-                    <p className="text-text-1 text-sm font-semibold truncate">{user.name}</p>
+                    <p className="text-text-1 text-sm font-semibold truncate">{user?.name}</p>
                     <p className="text-text-faint text-xs">
-                      {user.plan === "Free Plan" ? "Free plan" : "Pro plan"}
+                      {"Free Plan"}
                     </p>
                   </div>
                   <button
@@ -189,20 +202,20 @@ export default function SidebarNav({
                     aria-label="Settings"
                     className="text-text-1 hover:text-text-2 transition-colors"
                   >
-                    <Settings className="h-5 w-5" strokeWidth={1.75} />
                   </button>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* ---------- MOBILE: full-screen drawer (rail hidden entirely) ---------- */}
-      <aside
+      < aside
         className={`fixed z-50 inset-y-0 left-0 w-[300px] bg-base border-r border-white/5 flex flex-col
           transition-transform duration-200 md:hidden
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
+        }
       >
         <div className="flex items-center justify-between px-5 py-5">
           <span className="text-text-1 font-bold tracking-wide text-lg">ACELA</span>
@@ -215,9 +228,6 @@ export default function SidebarNav({
             >
               <X className="h-5 w-5" strokeWidth={1.75} />
             </button>
-            <div className="h-9 w-9 rounded-full overflow-hidden ring-1 ring-white/10 relative">
-              <Image src={user.avatarUrl} alt="User avatar" fill className="object-cover" unoptimized />
-            </div>
           </div>
         </div>
 
@@ -250,10 +260,9 @@ export default function SidebarNav({
                   }
                 }}
                 className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
-                  ${
-                    chat.id === activeChatId
-                      ? "text-text-1 bg-white/5"
-                      : "text-text-2 hover:bg-white/5 hover:text-text-1"
+                  ${chat.id === activeChatId
+                    ? "text-text-1 bg-white/5"
+                    : "text-text-2 hover:bg-white/5 hover:text-text-1"
                   }`}
               >
                 {chat.title}
@@ -266,26 +275,31 @@ export default function SidebarNav({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0">
-                <Image src={user.avatarUrl} alt="User avatar" fill className="object-cover" unoptimized />
+
+                <button
+                  type="button"
+                  onClick={() => handleRailClick("account")}
+                  className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0"
+                >{user ?
+                  <Image
+                    src={user?.image ?? "/logo.svg"}
+                    alt="User avatar"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  /> : <UserCircle2 className="h-10 w-10 shrink-0 cursor-pointer" />
+                  }</button>
               </div>
               <div className="min-w-0">
-                <p className="text-text-1 text-sm font-semibold truncate">{user.name}</p>
+                <p className="text-text-1 text-sm font-semibold truncate">{user?.name}</p>
                 <p className="text-text-faint text-xs">
-                  {user.plan === "Free Plan" ? "Free plan" : "Pro plan"}
+                  {"Free Plan"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button type="button" aria-label="Settings" className="text-text-1 hover:text-text-2 transition-colors">
-                <Settings className="h-5 w-5" strokeWidth={1.75} />
-              </button>
-              <button type="button" aria-label="Send" className="text-text-1 hover:text-text-2 transition-colors">
-                <Send className="h-5 w-5" strokeWidth={1.75} />
-              </button>
-            </div>
           </div>
         </div>
-      </aside>
+      </aside >
     </>
   );
 }

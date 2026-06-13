@@ -13,8 +13,15 @@ export interface RecentChat {
   title: string;
 }
 
-export interface User {
-  name: string;
-  plan: "Free Plan" | "Pro Plan";
-  avatarUrl: string;
+export interface SessionUser {
+  id: string;
+  role: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
+
+export interface IconProps {
+  className?: string;
 }

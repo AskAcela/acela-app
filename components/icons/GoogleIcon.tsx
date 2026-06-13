@@ -1,8 +1,7 @@
-interface GoogleIconProps {
-  className?: string;
-}
+import { IconProps } from "@/types";
 
-export default function GoogleIcon({ className = "h-5 w-5" }: GoogleIconProps) {
+
+export default function GoogleIcon({ className = "h-5 w-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
       <path

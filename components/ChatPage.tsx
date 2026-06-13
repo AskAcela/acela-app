@@ -7,7 +7,7 @@ import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
-import { RecentChat, User } from "./types";
+import { RecentChat, User } from "../types";
 import BillingModal from "./BillingModal";
 
 const defaultUser: User = {

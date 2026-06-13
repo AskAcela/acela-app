@@ -1,7 +1,7 @@
 "use client";
 
 import { X, LogOut } from "lucide-react";
-import Modal from "./Modal";
+import Modal from "./modals/Modal";
 
 interface LogoutModalProps {
   open: boolean;
