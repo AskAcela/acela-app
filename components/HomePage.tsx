@@ -69,7 +69,7 @@ export default function HomePage({
   };
 
   if (sessionStatus === "loading") {
-    return <div className="h-screen w-screen bg-base flex items-center justify-center text-text-2">Loading...</div>; // or skeleton
+    return <div className="h-dvh w-screen bg-base flex items-center justify-center text-text-2">Loading...</div>; // or skeleton
   }
 
   const openAuthModal = () => {
@@ -77,7 +77,7 @@ export default function HomePage({
   }
 
   return (
-    <div className="flex h-screen bg-base overflow-hidden">
+    <div className="flex h-dvh bg-base overflow-hidden">
       <SidebarNav recentChats={recentChats} user={session?.user ?? null} activeChatId={hasHistory ? recentChats[0]?.id : undefined} onMobileClose={() => setSidebarOpen(false)} mobileOpen={sidebarOpen} defaultOpen={false} onSelectChat={(id) => { }} openAuthModal={openAuthModal} openSettingsModal={() => setSettingsOpen(true)} />
 
       <div className="flex-1 flex flex-col min-w-0">

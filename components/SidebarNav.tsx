@@ -90,7 +90,7 @@ export default function SidebarNav({
       )}
 
       {/* ---------- DESKTOP: persistent rail + animated panel ---------- */}
-      <div className="hidden md:flex h-screen shrink-0 bg-base border-r border-white/5">
+      <div className="hidden md:flex h-dvh shrink-0 bg-base border-r border-white/5">
         <div
           className={`flex flex-col justify-between py-5 transition-[width] duration-300 ease-in-out overflow-hidden
             ${open ? "w-[300px]" : "w-[92px]"}`}
