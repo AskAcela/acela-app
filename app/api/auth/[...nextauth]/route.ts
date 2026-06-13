@@ -13,39 +13,48 @@ const handler = NextAuth({
     ],
     callbacks: {
         async signIn({ user, account, profile }) {
-            await connectDB();
+            try {
+                await connectDB();
 
-            const provider = account?.provider!;
-            const providerAccountId = account?.providerAccountId!;
+                if (!account) {
+                    return false;
+                }
 
-            const existingAccount =
-                await Account.findOne({
+                const provider = account?.provider!;
+                const providerAccountId = account?.providerAccountId!;
+
+                const existingAccount =
+                    await Account.findOne({
+                        provider,
+                        providerAccountId,
+                    });
+
+                if (existingAccount) return true;
+
+                let dbUser = await User.findOne({
+                    email: user.email,
+                });
+
+                if (!dbUser) {
+                    dbUser = await User.create({
+                        name: user.name,
+                        email: user.email,
+                        image: user.image,
+                        username: profile?.login,
+                    });
+                }
+
+                await Account.create({
+                    userId: dbUser._id,
                     provider,
                     providerAccountId,
                 });
 
-            if (existingAccount) return true;
-
-            const existingUser = await User.findOne({
-                email: user.email,
-            });
-
-            if (!existingUser) {
-                await User.create({
-                    name: user.name,
-                    email: user.email,
-                    image: user.image,
-                    username: profile?.login,
-                });
+                return true;
+            } catch (err) {
+                console.error(err);
+                return false;
             }
-
-            await Account.create({
-                userId: existingUser._id,
-                provider,
-                providerAccountId,
-            });
-
-            return true;
         },
         async jwt({ token }) {
 
