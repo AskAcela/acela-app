@@ -13,7 +13,7 @@ interface BillingModalProps {
 export default function BillingModal({ open, onClose, onSelectPlan }: BillingModalProps) {
   return (
     <Modal open={open} onClose={onClose} maxWidth="max-w-3xl md:max-w-5xl lg:max-w-7xl">
-      <div className="py-2 text-center">
+      <div className="max-h-[85vh] overflow-y-auto py-2 text-center">
         <h1 className="text-text-1 text-3xl md:text-4xl font-extrabold mb-3">
           Get more out of ACELA
         </h1>
