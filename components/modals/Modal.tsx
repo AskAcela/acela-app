@@ -21,7 +21,7 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-md" }
         aria-hidden="true"
       />
       <div
-        className={`relative w-full ${maxWidth} rounded-2xl bg-surface border border-white/5 p-6 md:p-8 shadow-2xl shadow-black/40`}
+        className={`relative w-full ${maxWidth} bg-base border border-card p-6 md:p-8 rounded-x20`}
         role="dialog"
         aria-modal="true"
       >

@@ -31,7 +31,7 @@ export default function ChatHeader({ title, plan, onMenuClick, onUpgradeClick }:
       </button>
 
       <div className="flex-1 flex justify-center md:flex-initial">
-        <div className="inline-flex items-center gap-4 rounded-2xl bg-card px-5 py-3 text-sm">
+        <div className="inline-flex items-center gap-4 rounded-xl0 bg-card px-5 py-3 text-sm">
           <span className="text-text-1 font-medium">{plan}</span>
           {onUpgradeClick ? (
             <button

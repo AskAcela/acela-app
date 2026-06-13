@@ -1,7 +1,7 @@
 "use client";
 
 import { X, LogOut } from "lucide-react";
-import Modal from "./modals/Modal";
+import Modal from "./Modal";
 
 interface LogoutModalProps {
   open: boolean;
@@ -28,7 +28,7 @@ export default function LogoutModal({ open, onClose, onConfirm }: LogoutModalPro
         <button
           type="button"
           onClick={onConfirm}
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-5 py-2.5 text-base font-medium text-text-1 hover:bg-white/5 transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl0 border border-white/10 px-5 py-2.5 text-base font-medium text-text-1 hover:bg-white/5 transition-colors"
         >
           <LogOut className="h-4 w-4" strokeWidth={1.75} />
           Logout

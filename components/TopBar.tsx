@@ -12,9 +12,10 @@ interface TopBarProps {
   user: SessionUser | null;
   onUpgradeClick?: () => void;
   openAuthModal: () => void;
+  openSettingsModal: () => void;
 }
 
-export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAuthModal }: TopBarProps) {
+export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAuthModal, openSettingsModal }: TopBarProps) {
   return (
     <div className="flex items-center justify-between px-4 py-4 md:px-6">
       <button
@@ -27,7 +28,7 @@ export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAu
       </button>
 
       <div className="flex-1 flex justify-center">
-        <div className="inline-flex items-center gap-4 rounded-2xl bg-card px-5 py-3 text-sm">
+        <div className="inline-flex items-center gap-4 rounded-x10 bg-card px-5 py-3 text-sm">
           <span className="text-text-1 font-medium">{plan}</span>
           {onUpgradeClick ? (
             <button
@@ -54,8 +55,9 @@ export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAu
             src={user?.image ?? "/logo.svg"}
             alt="User avatar"
             fill
-            className="object-cover"
+            className="object-cover cursor-pointer"
             unoptimized
+            onClick={openSettingsModal}
           /> : <UserCircle2 className="h-10 w-10 shrink-0 cursor-pointer" onClick={openAuthModal} />
         }
       </div>

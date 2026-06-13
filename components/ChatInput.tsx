@@ -32,7 +32,7 @@ export default function ChatInput({
 
   return (
     <div
-      className={`rounded-2xl bg-card border border-white/5 px-4 pt-4 pb-3 shadow-lg shadow-black/20 ${className}`}
+      className={`rounded-x10 bg-card border border-white/5 px-4 pt-4 pb-3 shadow-lg shadow-black/20 ${className}`}
     >
       <textarea
         value={value}

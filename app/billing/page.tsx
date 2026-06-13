@@ -1,6 +1,6 @@
 "use client";
 
-import BillingModal from "@/components/BillingModal";
+import BillingModal from "@/components/modals/BillingModal";
 import { useRouter } from "next/navigation";
 
 export default function Page() {

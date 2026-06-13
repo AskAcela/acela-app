@@ -11,7 +11,7 @@ interface AuthModalProps {
 }
 
 const providers = [
-  { icon: GoogleIcon, onClick: () => signIn("google"), id: "google" },
+  // { icon: GoogleIcon, onClick: () => signIn("google"), id: "google" },
   { icon: GithubIcon, onClick: () => signIn("github"), id: "github" },
 ]
 
@@ -30,7 +30,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
             key={provider.id}
             type="button"
             onClick={provider.onClick}
-            className="w-full flex items-center justify-center gap-3 rounded-2xl bg-card border border-white/5 px-4 py-3.5 text-text-1 text-base font-medium hover:bg-white/5 transition-colors"
+            className="w-full flex items-center justify-center gap-3 rounded-x10 bg-card border border-white/5 px-4 py-3.5 text-text-1 text-base font-medium hover:bg-white/5 transition-colors"
           >
             <provider.icon className="h-5 w-5" />
             Continue with {provider.id}

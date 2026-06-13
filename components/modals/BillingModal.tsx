@@ -1,8 +1,8 @@
 "use client";
 
-import PlanCard from "./PlanCard";
-import { CircleBadge, HeptagonBadge, StarBadge } from "./PlanBadges";
-import Modal from "./modals/Modal";
+import PlanCard from "../PlanCard";
+import { CircleBadge, HeptagonBadge, StarBadge } from "../PlanBadges";
+import Modal from "./Modal";
 
 interface BillingModalProps {
   open: boolean;

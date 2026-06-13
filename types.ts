@@ -23,5 +23,6 @@ export interface SessionUser {
 
 
 export interface IconProps {
+  size?: number;
   className?: string;
 }

@@ -14,31 +14,34 @@
   --status-info: #F5C451;
   --status-error: #FF5C5C;
   --status-accent-blue: #4DA3FF;
-  
+
   --radius-xl2: 1rem;
 }
 
 @theme {
   --font-sans: var(--font-inter);
-  
+
   --color-base: var(--base);
   --color-surface: var(--surface);
   --color-card: var(--card);
-  
+
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-glow: var(--primary-glow);
-  
+
   --color-text-1: var(--text-1);
   --color-text-2: var(--text-2);
   --color-text-faint: var(--text-faint);
-  
+
   --color-status-success: var(--status-success);
   --color-status-info: var(--status-info);
   --color-status-error: var(--status-error);
   --color-status-accent-blue: var(--status-accent-blue);
-  
+
   --radius-xl2: var(--radius-xl2);
+  --radius-x5: 5px;
+  --radius-x10: 10px;
+  --radius-x20: 20px;
 }
 
 body {

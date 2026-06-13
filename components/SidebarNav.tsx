@@ -29,6 +29,7 @@ interface SidebarNavProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
   openAuthModal: () => void;
+  openSettingsModal: () => void;
 }
 
 type RailId = "new-chat" | "idea" | "explore" | "ask" | "account";
@@ -49,6 +50,7 @@ export default function SidebarNav({
   mobileOpen,
   onMobileClose,
   openAuthModal,
+  openSettingsModal,
 }: SidebarNavProps) {
   // Desktop: panel open/closed beside the persistent rail.
   const [open, setOpen] = useState(defaultOpen);
@@ -62,6 +64,7 @@ export default function SidebarNav({
         openAuthModal();
         return;
       }
+      openSettingsModal();
       return;
     }
 
