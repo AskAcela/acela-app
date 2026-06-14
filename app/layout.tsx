@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,7 +26,9 @@ export default function RootLayout({
         className={`${inter.variable} h-full antialiased dark`}
       >
         <body className="h-full bg-base text-text-1 overflow-hidden">
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </body>
       </html>
     </SessionProvider>

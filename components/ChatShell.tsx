@@ -46,7 +46,7 @@ export default function ChatShell({
   );
 
   const { items: recentChats, loading: recentLoading, refresh: refreshRecentChats } = useRecentChats();
-  const { messages, sendMessage, loading: chatLoading } = useChat(initialConversationId);
+  const { messages, sendMessage, loading: chatLoading, streamingMessageId } = useChat(initialConversationId);
 
   const activeModeOption = modeOptions.find((m) => m.id === activeMode) ?? null;
 
@@ -74,9 +74,11 @@ export default function ChatShell({
 
   const handleChatSend = async () => {
     if (!message.trim()) return;
-    await sendMessage(message, activeMode ?? "ask");
-    refreshRecentChats();
-    setMessage("");
+    const ok = await sendMessage(message, activeMode ?? "ask");
+    if (ok) {
+      refreshRecentChats();
+      setMessage("");
+    }
   };
 
   return (
@@ -104,7 +106,11 @@ export default function ChatShell({
         <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {messages.length > 0 ? (
             <>
-              <ChatWindow messages={messages} />
+              <ChatWindow
+                messages={messages}
+                loading={chatLoading}
+                streamingMessageId={streamingMessageId}
+              />
               <div className="shrink-0 px-4 pb-4 pt-2">
                 <div className="mx-auto w-full max-w-3xl">
                   <ChatInput
@@ -114,7 +120,7 @@ export default function ChatShell({
                     activeMode={modePillClicked ? activeModeOption : null}
                     onClearMode={() => setActiveMode(null)}
                     className="w-full"
-                    loading={chatLoading}
+                    loading={chatLoading || !!streamingMessageId}
                   />
                 </div>
               </div>
@@ -133,8 +139,8 @@ export default function ChatShell({
                   </h1>
                 </div>
 
-                {/* Mobile: mode pills sit above the input. Desktop: below. */}
-                <div className="flex flex-wrap items-center justify-center gap-2 mb-4 md:hidden">
+                {/* Mobile: mode pills above, input below */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-4 md:hidden w-full">
                   {modeOptions.map((mode) => (
                     <ModePill
                       key={mode.id}
@@ -155,7 +161,8 @@ export default function ChatShell({
                   />
                 </div>
 
-                <div className="hidden md:flex flex-wrap items-center justify-center gap-3 mt-6">
+                {/* Desktop: input on its own row, pills below — keeps input width stable */}
+                <div className="hidden md:flex flex-col w-full gap-3 mt-6">
                   <ChatInput
                     value={message}
                     onChange={setMessage}
@@ -165,15 +172,17 @@ export default function ChatShell({
                     className="w-full"
                     loading={chatLoading}
                   />
-                  {modeOptions.map((mode) => (
-                    <ModePill
-                      key={mode.id}
-                      icon={mode.icon}
-                      label={mode.label}
-                      active={activeMode === mode.id && modePillClicked}
-                      onClick={() => handleModeClick(mode.id)}
-                    />
-                  ))}
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    {modeOptions.map((mode) => (
+                      <ModePill
+                        key={mode.id}
+                        icon={mode.icon}
+                        label={mode.label}
+                        active={activeMode === mode.id && modePillClicked}
+                        onClick={() => handleModeClick(mode.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

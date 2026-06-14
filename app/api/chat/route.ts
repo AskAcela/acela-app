@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
             },
           },
         ],
-        { session: dbSession }
+        { session: dbSession, ordered: true }
       );
 
       await User.updateOne(
@@ -285,6 +285,7 @@ export async function POST(req: NextRequest) {
       );
     });
   } catch (error) {
+    console.error("Error during transaction:", error);
     const message =
       error instanceof Error ? error.message : "Failed to persist chat";
 

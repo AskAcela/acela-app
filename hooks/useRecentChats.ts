@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { fetchRecentChats } from "@/lib/chat-api";
 import { RecentChat } from "@/types";
+import { useNotification } from "@/context/NotificationContext";
+import { getNotificationMessage } from "@/lib/errors";
 
 export function useRecentChats(initialLimit = 20) {
+  const notify = useNotification();
   const [items, setItems] = useState<RecentChat[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +24,8 @@ export function useRecentChats(initialLimit = 20) {
       const data = await fetchRecentChats({ limit: initialLimit });
       setItems(data.items);
       setNextCursor(data.nextCursor);
+    } catch (err) {
+      notify(getNotificationMessage(err), "error");
     } finally {
       setLoading(false);
     }
@@ -42,6 +47,8 @@ export function useRecentChats(initialLimit = 20) {
 
       setItems((prev) => [...prev, ...data.items]);
       setNextCursor(data.nextCursor);
+    } catch (err) {
+      notify(getNotificationMessage(err), "error");
     } finally {
       setLoadingMore(false);
     }
