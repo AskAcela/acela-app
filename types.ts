@@ -46,6 +46,7 @@ export interface IconProps {
 export type ChatRequestBody = {
   conversationId?: string;
   message: string;
+  mode: AppMode;
 };
 
 export type AgentResponseShape = {

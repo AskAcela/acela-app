@@ -101,67 +101,84 @@ export default function ChatShell({
           openSettingsModal={() => setSettingsOpen(true)}
         />
 
-        <main className="flex-1 flex flex-col items-center justify-center px-4 md:pb-24 md:pb-32">
-          {messages.length > 0 ? (<ChatWindow messages={messages} />
-          ) :
-            <div className="w-full h-full max-w-2xl flex justify-between md:justify-center flex-col items-center">
-              <div className="pt-10 md:pt-0 md:hidden"> </div>
-              <div className="flex flex-col items-center gap-4 mb-8">
-                <div className="flex items-center">
-                  <AcelaLogo size={30} className="md:hidden mb-1" />
-                  <AcelaLogo size={38} className="hidden mb-2 md:block" />
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {messages.length > 0 ? (
+            <>
+              <ChatWindow messages={messages} />
+              <div className="shrink-0 px-4 pb-4 pt-2">
+                <div className="mx-auto w-full max-w-3xl">
+                  <ChatInput
+                    value={message}
+                    onChange={setMessage}
+                    onSubmit={handleChatSend}
+                    activeMode={modePillClicked ? activeModeOption : null}
+                    onClearMode={() => setActiveMode(null)}
+                    className="w-full"
+                    loading={chatLoading}
+                  />
                 </div>
-                <h1 className="bg-gradient-to-r from-text-1 to-text-1/60 bg-clip-text text-center text-[28px] font-bold text-transparent tracking-tight">
-                  What’s on your mind today?
-                </h1>
               </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center px-4 md:pb-24 md:pb-32">
+              <div className="w-full h-full max-w-2xl flex justify-between md:justify-center flex-col items-center">
+                <div className="pt-10 md:pt-0 md:hidden"> </div>
+                <div className="flex flex-col items-center gap-4 mb-8">
+                  <div className="flex items-center">
+                    <AcelaLogo size={30} className="md:hidden mb-1" />
+                    <AcelaLogo size={38} className="hidden mb-2 md:block" />
+                  </div>
+                  <h1 className="bg-gradient-to-r from-text-1 to-text-1/60 bg-clip-text text-center text-[28px] font-bold text-transparent tracking-tight">
+                    What’s on your mind today?
+                  </h1>
+                </div>
 
-              {/* Mobile: mode pills sit above the input. Desktop: below. */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mb-4 md:hidden">
-                {modeOptions.map((mode) => (
-                  <ModePill
-                    key={mode.id}
-                    icon={mode.icon}
-                    label={mode.label}
-                    active={activeMode === mode.id && modePillClicked}
-                    onClick={() => handleModeClick(mode.id)}
+                {/* Mobile: mode pills sit above the input. Desktop: below. */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-4 md:hidden">
+                  {modeOptions.map((mode) => (
+                    <ModePill
+                      key={mode.id}
+                      icon={mode.icon}
+                      label={mode.label}
+                      active={activeMode === mode.id && modePillClicked}
+                      onClick={() => handleModeClick(mode.id)}
+                    />
+                  ))}
+                  <ChatInput
+                    value={message}
+                    onChange={setMessage}
+                    onSubmit={handleChatSend}
+                    activeMode={modePillClicked ? activeModeOption : null}
+                    onClearMode={() => setActiveMode(null)}
+                    className="w-full"
+                    loading={chatLoading}
                   />
-                ))}
-                <ChatInput
-                  value={message}
-                  onChange={setMessage}
-                  onSubmit={handleChatSend}
-                  activeMode={modePillClicked ? activeModeOption : null}
-                  onClearMode={() => setActiveMode(null)}
-                  className="w-full"
-                  loading={chatLoading}
-                />
-              </div>
+                </div>
 
-
-
-              <div className="hidden md:flex flex-wrap items-center justify-center gap-3 mt-6">
-                <ChatInput
-                  value={message}
-                  onChange={setMessage}
-                  onSubmit={handleChatSend}
-                  activeMode={modePillClicked ? activeModeOption : null}
-                  onClearMode={() => setActiveMode(null)}
-                  className="w-full"
-                  loading={chatLoading}
-                />
-                {modeOptions.map((mode) => (
-                  <ModePill
-                    key={mode.id}
-                    icon={mode.icon}
-                    label={mode.label}
-                    active={activeMode === mode.id && modePillClicked}
-                    onClick={() => handleModeClick(mode.id)}
+                <div className="hidden md:flex flex-wrap items-center justify-center gap-3 mt-6">
+                  <ChatInput
+                    value={message}
+                    onChange={setMessage}
+                    onSubmit={handleChatSend}
+                    activeMode={modePillClicked ? activeModeOption : null}
+                    onClearMode={() => setActiveMode(null)}
+                    className="w-full"
+                    loading={chatLoading}
                   />
-                ))}
+                  {modeOptions.map((mode) => (
+                    <ModePill
+                      key={mode.id}
+                      icon={mode.icon}
+                      label={mode.label}
+                      active={activeMode === mode.id && modePillClicked}
+                      onClick={() => handleModeClick(mode.id)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>}
-        </main >
+            </div>
+          )}
+        </main>
       </div >
       <BillingModal open={billingOpen} onClose={() => setBillingOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />

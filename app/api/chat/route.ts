@@ -171,6 +171,7 @@ export async function POST(req: NextRequest) {
   }
 
   const agentUrl = process.env.AGENT_URL;
+  const chatEndpoint = `${agentUrl}/chat?mode=${body.mode ?? "ask"}`;
 
   if (!agentUrl) {
     return NextResponse.json(
@@ -179,7 +180,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const agentRes = await fetch(agentUrl, {
+  const agentRes = await fetch(chatEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

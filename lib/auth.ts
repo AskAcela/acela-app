@@ -3,6 +3,7 @@ import GitHubProvider from "next-auth/providers/github";
 import { connectDB } from "@/lib/mongoose";
 import User from "@/models/User";
 import Account from "@/models/Account";
+import { initialCreditsForAuthenticated } from "@/lib/credits";
 
 export const { handlers, auth } = NextAuth({
     providers: [
@@ -40,7 +41,12 @@ export const { handlers, auth } = NextAuth({
                         name: user.name,
                         email: user.email,
                         image: user.image,
-                        username: profile?.login,
+                        isGuest: false,
+                        plan: "authenticated_free",
+                        creditsRemaining: initialCreditsForAuthenticated(),
+                        creditsSpentTotal: 0,
+                        creditsPurchasedTotal: 0,
+                        lastSeenAt: new Date(),
                     });
                 }
 
