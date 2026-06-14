@@ -26,3 +26,15 @@ export interface IconProps {
   size?: number;
   className?: string;
 }
+
+export type ChatRequestBody = {
+  conversationId?: string;
+  message: string;
+};
+
+export type AgentResponseShape = {
+  message: string;
+  usage: {
+    total_tokens: number;
+  }
+};

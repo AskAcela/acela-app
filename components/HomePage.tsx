@@ -37,7 +37,6 @@ export default function HomePage({
   hasHistory = false,
 }: HomePageProps) {
   const { data: session, status: sessionStatus } = useSession();
-  console.log("session", session);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [activeMode, setActiveMode] = useState<AppMode | null>(null);
