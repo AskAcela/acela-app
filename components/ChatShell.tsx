@@ -58,13 +58,13 @@ export default function ChatShell({
     );
   }
 
-  useEffect(() => {
-    if (modeParam && ["idea", "ask", "explore"].includes(modeParam)) {
-      setActiveMode(modeParam);
-    } else {
-      setActiveMode(null);
-    }
-  }, [modeParam]);
+  // useEffect(() => {
+  //   if (modeParam && ["idea", "ask", "explore"].includes(modeParam)) {
+  //     setActiveMode(modeParam);
+  //   } else {
+  //     setActiveMode(null);
+  //   }
+  // }, [modeParam]);
 
 
   const handleModeClick = (modeId: AppMode) => {

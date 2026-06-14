@@ -32,7 +32,7 @@ export function useChat(initialConversationId?: string) {
     loadConversation().catch(() => {
       setMessages([]);
     });
-  }, [initialConversationId]);
+  }, [hydrated, initialConversationId]);
 
   async function sendMessage(message: string, mode: AppMode = "ask") {
     const trimmed = message.trim();
@@ -93,7 +93,6 @@ export function useChat(initialConversationId?: string) {
     conversationId,
     messages,
     loading,
-    hydrated,
     setMessages,
     sendMessage,
   };

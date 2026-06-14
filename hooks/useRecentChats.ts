@@ -28,11 +28,7 @@ export function useRecentChats(initialLimit = 20) {
 
   useEffect(() => {
     load();
-  }, [version]);
-
-  useEffect(() => {
-    load();
-  }, [initialLimit]);
+  }, [version, initialLimit]);
 
   async function loadMore() {
     if (!nextCursor || loadingMore) return;
