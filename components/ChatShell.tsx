@@ -1,0 +1,173 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Lightbulb, HelpCircle, Compass } from "lucide-react";
+import AuthModal from "./modals/AuthModal";
+import AcelaLogo from "./icons/AcelaLogo";
+import ModePill from "./chat/ModePill";
+import ChatInput from "./chat/ChatInput";
+import TopBar from "./TopBar";
+import { AppMode, ModeOption, RecentChat, SessionUser } from "../types";
+import SidebarNav from "./SidebarNav";
+import BillingModal from "./modals/BillingModal";
+import SettingsModal from "./modals/SettingsModal";
+import { useChat } from "@/hooks/useChat";
+import { useRecentChats } from "@/hooks/useRecentChats";
+import ChatWindow from "./chat/ChatWindow";
+
+const modeOptions: ModeOption[] = [
+  { id: "idea", label: "Idea mode", icon: Lightbulb },
+  { id: "ask", label: "Ask mode", icon: HelpCircle },
+  { id: "explore", label: "Explore", icon: Compass },
+];
+
+interface ChatShellProps {
+  initialConversationId?: string;
+}
+
+export default function ChatShell({
+  initialConversationId,
+}: ChatShellProps) {
+  const { data: session, status: sessionStatus } = useSession();
+  const searchParams = useSearchParams();
+
+  const [modePillClicked, setModePillClicked] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [billingOpen, setBillingOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const modeParam = searchParams.get("mode") as AppMode | null;
+  const [activeMode, setActiveMode] = useState<AppMode | null>(
+    modeParam && modeOptions.map(mode => mode.id).includes(modeParam) ? modeParam : null
+  );
+
+  const { items: recentChats, loading: recentLoading } = useRecentChats();
+  const { messages, sendMessage, loading } = useChat(initialConversationId);
+
+  const activeModeOption = modeOptions.find((m) => m.id === activeMode) ?? null;
+
+  if (status === "loading") {
+    return (
+      <div className="flex h-dvh w-screen items-center justify-center bg-base text-text-2">
+        Loading...
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    if (modeParam && ["idea", "ask", "explore"].includes(modeParam)) {
+      setActiveMode(modeParam);
+    } else {
+      setActiveMode(null);
+    }
+  }, [modeParam]);
+
+
+  const handleModeClick = (modeId: AppMode) => {
+    setModePillClicked(true);
+    setActiveMode((current) => (current === modeId ? null : modeId));
+  };
+
+  const handleChatSend = async () => {
+    if (!message.trim()) return;
+    await sendMessage(message, activeMode ?? "ask");
+    setMessage("");
+  };
+
+  if (sessionStatus === "loading") {
+    return <div className="h-dvh w-screen bg-base flex items-center justify-center text-text-2">Loading...</div>; // or skeleton
+  }
+
+  return (
+    <div className="flex h-dvh bg-base overflow-hidden">
+      <SidebarNav
+        recentChats={recentChats}
+        user={session?.user ?? null}
+        activeChatId={initialConversationId}
+        onMobileClose={() => setSidebarOpen(false)}
+        mobileOpen={sidebarOpen}
+        defaultOpen={false}
+        onSelectChat={(id) => { }}
+        openAuthModal={() => setAuthOpen(true)}
+        openSettingsModal={() => setSettingsOpen(true)} />
+
+      <div className="flex flex-1 flex-col min-w-0">
+        <TopBar
+          plan={"Free Plan"}
+          onMenuClick={() => setSidebarOpen(true)}
+          user={session?.user ?? null}
+          onUpgradeClick={() => setBillingOpen(true)}
+          openAuthModal={() => setAuthOpen(true)}
+          openSettingsModal={() => setSettingsOpen(true)}
+        />
+
+        <main className="flex-1 flex flex-col items-center justify-center px-4 md:pb-24 md:pb-32">
+          {messages.length > 0 ? (<ChatWindow messages={messages} />
+          ) :
+            <div className="w-full h-full max-w-2xl flex justify-between md:justify-center flex-col items-center">
+              <div className="pt-10 md:pt-0 md:hidden"> </div>
+              <div className="flex flex-col items-center gap-4 mb-8">
+                <div className="flex items-center">
+                  <AcelaLogo size={30} className="md:hidden mb-1" />
+                  <AcelaLogo size={38} className="hidden mb-2 md:block" />
+                </div>
+                <h1 className="bg-gradient-to-r from-text-1 to-text-1/60 bg-clip-text text-center text-[28px] font-bold text-transparent tracking-tight">
+                  What’s on your mind today?
+                </h1>
+              </div>
+
+              {/* Mobile: mode pills sit above the input. Desktop: below. */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-4 md:hidden">
+                {modeOptions.map((mode) => (
+                  <ModePill
+                    key={mode.id}
+                    icon={mode.icon}
+                    label={mode.label}
+                    active={activeMode === mode.id && modePillClicked}
+                    onClick={() => handleModeClick(mode.id)}
+                  />
+                ))}
+                <ChatInput
+                  value={message}
+                  onChange={setMessage}
+                  onSubmit={handleChatSend}
+                  activeMode={modePillClicked ? activeModeOption : null}
+                  onClearMode={() => setActiveMode(null)}
+                  className="w-full"
+                />
+              </div>
+
+
+
+              <div className="hidden md:flex flex-wrap items-center justify-center gap-3 mt-6">
+                <ChatInput
+                  value={message}
+                  onChange={setMessage}
+                  onSubmit={handleChatSend}
+                  activeMode={modePillClicked ? activeModeOption : null}
+                  onClearMode={() => setActiveMode(null)}
+                  className="w-full"
+                />
+                {modeOptions.map((mode) => (
+                  <ModePill
+                    key={mode.id}
+                    icon={mode.icon}
+                    label={mode.label}
+                    active={activeMode === mode.id && modePillClicked}
+                    onClick={() => handleModeClick(mode.id)}
+                  />
+                ))}
+              </div>
+            </div>}
+        </main >
+      </div >
+      <BillingModal open={billingOpen} onClose={() => setBillingOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </div >
+  );
+}

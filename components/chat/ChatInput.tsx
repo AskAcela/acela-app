@@ -2,7 +2,7 @@
 
 import { Plus, Send } from "lucide-react";
 import { LucideIcon } from "lucide-react";
-import ActiveModeTag from "./ActiveModeTag";
+import ActiveModeTag from "../ActiveModeTag";
 
 interface ChatInputProps {
   value?: string;

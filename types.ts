@@ -2,6 +2,22 @@ import { LucideIcon } from "lucide-react";
 
 export type AppMode = "idea" | "ask" | "explore";
 
+export type ChatRole = "user" | "assistant" | "system" | "tool";
+export interface ChatMessage {
+  _id: string;
+  conversationId: string;
+  role: ChatRole;
+  content: string;
+  createdAt: string;
+  tokenCount?: number;
+  creditsCharged?: number;
+}
+
+export interface RecentChat {
+  id: string;
+  title: string;
+  updatedAt?: string;
+}
 export interface ModeOption {
   id: AppMode;
   label: string;
