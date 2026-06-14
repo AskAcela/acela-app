@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Send } from "lucide-react";
+import { Plus, Send, Loader2 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import ActiveModeTag from "../ActiveModeTag";
 
@@ -12,6 +12,7 @@ interface ChatInputProps {
   activeMode?: { icon: LucideIcon; label: string } | null;
   onClearMode?: () => void;
   className?: string;
+  loading?: boolean;
 }
 
 export default function ChatInput({
@@ -22,6 +23,7 @@ export default function ChatInput({
   activeMode,
   onClearMode,
   className = "",
+  loading = false,
 }: ChatInputProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -35,6 +37,7 @@ export default function ChatInput({
       className={`rounded-x10 bg-card border border-white/5 px-4 pt-4 pb-3 shadow-lg shadow-black/20 ${className}`}
     >
       <textarea
+        disabled={loading}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -59,10 +62,10 @@ export default function ChatInput({
           type="button"
           onClick={onSubmit}
           aria-label="Send message"
-          disabled={!value.trim()}
+          disabled={!value.trim() || loading}
           className="flex h-9 w-9 items-center justify-center rounded-xl text-text-1 transition-colors enabled:hover:bg-white/5 disabled:text-faint-text disabled:opacity-50"
         >
-          <Send className="h-5 w-5" strokeWidth={1.75} />
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" strokeWidth={1.75} />}
         </button>
       </div>
     </div>

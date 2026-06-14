@@ -9,7 +9,6 @@ import {
   Compass,
   HelpCircle,
   X,
-  Settings,
   Send,
 } from "lucide-react";
 import Link from "next/link";
@@ -17,11 +16,11 @@ import Image from "next/image";
 import AcelaLogo from "./icons/AcelaLogo";
 import { RecentChat, SessionUser } from "../types";
 import { UserCircle2 } from "lucide-react"
+import { useNewChat } from "@/hooks/useNewChat"
 
 interface SidebarNavProps {
   recentChats: RecentChat[];
   activeChatId?: string;
-  onSelectChat?: (id: string) => void;
   user: SessionUser | null;
   /** Controls the initial open/closed state on desktop. Defaults to closed (rail-only). */
   defaultOpen?: boolean;
@@ -44,7 +43,6 @@ const navItems = [
 export default function SidebarNav({
   recentChats,
   activeChatId,
-  onSelectChat,
   user,
   defaultOpen = false,
   mobileOpen,
@@ -52,6 +50,7 @@ export default function SidebarNav({
   openAuthModal,
   openSettingsModal,
 }: SidebarNavProps) {
+  const createNewChat = useNewChat();
   // Desktop: panel open/closed beside the persistent rail.
   const [open, setOpen] = useState(defaultOpen);
   // Tracks which rail icon is "active" so the panel can highlight/scroll to it.
@@ -125,9 +124,10 @@ export default function SidebarNav({
               <Link
                 key={id}
                 href={href}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (id === "new-chat") return createNewChat();
                   setActiveRailId(id);
-                  if (id !== "new-chat") setOpen(true);
                 }}
                 className={`flex items-center h-12 rounded-xl text-text-1 hover:bg-white/5 transition-colors
                   ${open ? "px-5 gap-3 mx-2" : "justify-center mx-0"}
@@ -153,12 +153,8 @@ export default function SidebarNav({
                   {recentChats.map((chat) => (
                     <Link
                       key={chat.id}
-                      href="/chat"
+                      href={`/c/${chat.id}`}
                       onClick={(e) => {
-                        if (onSelectChat) {
-                          e.preventDefault();
-                          onSelectChat(chat.id);
-                        }
                       }}
                       className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
                         ${chat.id === activeChatId
@@ -254,13 +250,8 @@ export default function SidebarNav({
             {recentChats.map((chat) => (
               <Link
                 key={chat.id}
-                href="/chat"
+                href={`/c/${chat.id}`}
                 onClick={(e) => {
-                  onMobileClose();
-                  if (onSelectChat) {
-                    e.preventDefault();
-                    onSelectChat(chat.id);
-                  }
                 }}
                 className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
                   ${chat.id === activeChatId

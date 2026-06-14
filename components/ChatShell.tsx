@@ -45,12 +45,12 @@ export default function ChatShell({
     modeParam && modeOptions.map(mode => mode.id).includes(modeParam) ? modeParam : null
   );
 
-  const { items: recentChats, loading: recentLoading } = useRecentChats();
-  const { messages, sendMessage, loading } = useChat(initialConversationId);
+  const { items: recentChats, loading: recentLoading, refresh: refreshRecentChats } = useRecentChats();
+  const { messages, sendMessage, loading: chatLoading } = useChat(initialConversationId);
 
   const activeModeOption = modeOptions.find((m) => m.id === activeMode) ?? null;
 
-  if (status === "loading") {
+  if (sessionStatus === "loading") {
     return (
       <div className="flex h-dvh w-screen items-center justify-center bg-base text-text-2">
         Loading...
@@ -75,12 +75,9 @@ export default function ChatShell({
   const handleChatSend = async () => {
     if (!message.trim()) return;
     await sendMessage(message, activeMode ?? "ask");
+    refreshRecentChats();
     setMessage("");
   };
-
-  if (sessionStatus === "loading") {
-    return <div className="h-dvh w-screen bg-base flex items-center justify-center text-text-2">Loading...</div>; // or skeleton
-  }
 
   return (
     <div className="flex h-dvh bg-base overflow-hidden">
@@ -91,7 +88,6 @@ export default function ChatShell({
         onMobileClose={() => setSidebarOpen(false)}
         mobileOpen={sidebarOpen}
         defaultOpen={false}
-        onSelectChat={(id) => { }}
         openAuthModal={() => setAuthOpen(true)}
         openSettingsModal={() => setSettingsOpen(true)} />
 
@@ -138,6 +134,7 @@ export default function ChatShell({
                   activeMode={modePillClicked ? activeModeOption : null}
                   onClearMode={() => setActiveMode(null)}
                   className="w-full"
+                  loading={chatLoading}
                 />
               </div>
 
@@ -151,6 +148,7 @@ export default function ChatShell({
                   activeMode={modePillClicked ? activeModeOption : null}
                   onClearMode={() => setActiveMode(null)}
                   className="w-full"
+                  loading={chatLoading}
                 />
                 {modeOptions.map((mode) => (
                   <ModePill
