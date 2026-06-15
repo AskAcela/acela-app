@@ -143,9 +143,9 @@ export default function SidebarNav({
         </div>
 
         {/* Recent conversations — only visible when expanded */}
-        <div className={`mt-4 flex-1 overflow-y-auto px-3 min-h-0 transition-opacity duration-200
+        <div className={`mt-8 flex-1 overflow-y-auto px-3 min-h-0 transition-opacity duration-200
           ${open ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"}`}>
-          <p className="px-2 py-2 text-xs font-semibold text-text-2 uppercase tracking-wider whitespace-nowrap">
+          <p className="px-2 py-2 text-xs font-bold text-text-1 uppercase tracking-wider whitespace-nowrap ">
             Recent
           </p>
           {recentChatsLoading ? recentSkeletons : recentList}
@@ -209,8 +209,8 @@ export default function SidebarNav({
           ))}
         </nav>
 
-        <div className="mt-4 flex-1 overflow-y-auto px-3 min-h-0">
-          <p className="px-3 py-2 text-xs font-semibold text-text-2 uppercase tracking-wider">Recent</p>
+        <div className="mt-8 flex-1 overflow-y-auto px-3 min-h-0">
+          <p className="px-3 py-2 text-xs font-bold text-text-1 uppercase tracking-wider">Recent</p>
           {recentChatsLoading ? recentSkeletons : recentList}
         </div>
 
