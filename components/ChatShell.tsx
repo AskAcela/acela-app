@@ -130,7 +130,9 @@ export default function ChatShell({
                     onChange={setMessage}
                     onSubmit={handleChatSend}
                     activeMode={modePillClicked ? activeModeOption : null}
-                    onClearMode={() => setActiveMode(null)}
+                    onClearMode={() => { setActiveMode(null); setModePillClicked(false); }}
+                    onModeSelect={(id) => { handleModeClick(id); }}
+                    modeOptions={modeOptions}
                     className="w-full"
                     loading={chatLoading || !!streamingMessageId}
                   />
@@ -167,7 +169,9 @@ export default function ChatShell({
                     onChange={setMessage}
                     onSubmit={handleChatSend}
                     activeMode={modePillClicked ? activeModeOption : null}
-                    onClearMode={() => setActiveMode(null)}
+                    onClearMode={() => { setActiveMode(null); setModePillClicked(false); }}
+                    onModeSelect={(id) => { handleModeClick(id); }}
+                    modeOptions={modeOptions}
                     className="w-full"
                     loading={chatLoading}
                   />
@@ -180,7 +184,9 @@ export default function ChatShell({
                     onChange={setMessage}
                     onSubmit={handleChatSend}
                     activeMode={modePillClicked ? activeModeOption : null}
-                    onClearMode={() => setActiveMode(null)}
+                    onClearMode={() => { setActiveMode(null); setModePillClicked(false); }}
+                    onModeSelect={(id) => { handleModeClick(id); }}
+                    modeOptions={modeOptions}
                     className="w-full"
                     loading={chatLoading}
                   />
