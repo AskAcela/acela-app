@@ -1,7 +1,6 @@
 "use client";
 
 import Modal from "./Modal";
-import GoogleIcon from "../icons/GoogleIcon";
 import GithubIcon from "../icons/GithubIcon";
 import { signIn } from "next-auth/react";
 
@@ -10,16 +9,20 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
+async function signInWithMigration(provider: string) {
+  // Tag the callbackUrl so the page knows to run migration after redirect
+  await signIn(provider, { callbackUrl: "/?migrate=1" });
+}
+
 const providers = [
-  // { icon: GoogleIcon, onClick: () => signIn("google"), id: "google" },
-  { icon: GithubIcon, onClick: () => signIn("github"), id: "github" },
-]
+  { icon: GithubIcon, onClick: () => signInWithMigration("github"), id: "github" },
+];
 
 export default function AuthModal({ open, onClose }: AuthModalProps) {
   return (
     <Modal open={open} onClose={onClose}>
       <div className="text-center mb-6">
-        <h2 className="text-text-1 text-2xl md:text-3xl font-extrabold mb-3">Log in or sign up</h2>
+        <h2 className="text-text-1 text-xl font-bold mb-2">Log in or sign up</h2>
         <p className="text-text-2 text-sm">
           You&apos;ll get smarter responses and can share, see chat history, and more.
         </p>

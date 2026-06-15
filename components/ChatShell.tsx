@@ -45,6 +45,27 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
 
   const chatInputRef = useRef<ChatInputHandle>(null);
 
+  // Run guest migration once after OAuth redirect
+  useEffect(() => {
+    if (!searchParams.get("migrate") || !session?.user) return;
+    fetch("/api/user/migrate-guest", { method: "POST" }).finally(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("migrate");
+      window.history.replaceState(null, "", url.toString());
+      reloadRecentChats();
+    });
+  }, [session?.user, searchParams]);
+
+  const prevUserRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const prevUser = prevUserRef.current;
+    prevUserRef.current = session?.user?.email ?? null;
+    // Reload recent chats whenever the user identity changes (guest → authed or sign-out)
+    if (prevUser !== undefined && prevUser !== (session?.user?.email ?? null)) {
+      reloadRecentChats();
+    }
+  }, [session?.user?.email]);
+
   useEffect(() => {
     if (validModeParam) {
       setActiveMode(modeParam);
@@ -55,7 +76,7 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
     }
   }, [modeParam]);
 
-  const { items: recentChats, loading: recentChatsLoading, prependChat, updateTitle } = useRecentChats();
+  const { items: recentChats, loading: recentChatsLoading, prependChat, updateTitle, reload: reloadRecentChats } = useRecentChats();
 
   const { messages, sendMessage, loading: chatLoading, loadingConversation, streamingMessageId } = useChat(
     initialConversationId,
@@ -63,7 +84,7 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
       onNewConversation: (chat) => prependChat(chat),
       onTitleGenerated: (id, title) => updateTitle(id, title),
       onResponseComplete: () => chatInputRef.current?.focus(),
-      onInsufficientCredits: () => setBillingOpen(true),
+      onInsufficientCredits: () => session?.user ? setBillingOpen(true) : setAuthOpen(true),
     }
   );
 

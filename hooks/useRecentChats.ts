@@ -73,5 +73,6 @@ export function useRecentChats(initialLimit = 20) {
     loadMore,
     prependChat,
     updateTitle,
+    reload: () => load(false),
   };
 }
