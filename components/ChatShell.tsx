@@ -83,7 +83,7 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
     {
       onNewConversation: (chat) => prependChat(chat),
       onTitleGenerated: (id, title) => updateTitle(id, title),
-      onResponseComplete: () => chatInputRef.current?.focus(),
+      onResponseComplete: () => requestAnimationFrame(() => chatInputRef.current?.focus()),
       onInsufficientCredits: () => session?.user ? setBillingOpen(true) : setAuthOpen(true),
     }
   );
