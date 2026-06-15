@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Lightbulb, HelpCircle, Compass } from "lucide-react";
 import AuthModal from "./modals/AuthModal";
 import AcelaLogo from "./icons/AcelaLogo";
 import ModePill from "./chat/ModePill";
-import ChatInput from "./chat/ChatInput";
+import ChatInput, { ChatInputHandle } from "./chat/ChatInput";
 import TopBar from "./TopBar";
-import { AppMode, ModeOption, RecentChat, SessionUser } from "../types";
+import { AppMode, ModeOption } from "../types";
 import SidebarNav from "./SidebarNav";
 import BillingModal from "./modals/BillingModal";
 import SettingsModal from "./modals/SettingsModal";
@@ -28,26 +28,34 @@ interface ChatShellProps {
   initialConversationId?: string;
 }
 
-export default function ChatShell({
-  initialConversationId,
-}: ChatShellProps) {
+export default function ChatShell({ initialConversationId }: ChatShellProps) {
   const { data: session, status: sessionStatus } = useSession();
   const searchParams = useSearchParams();
 
-  const [modePillClicked, setModePillClicked] = useState(false);
+  const modeParam = searchParams.get("mode") as AppMode | null;
+  const validModeParam = !!(modeParam && modeOptions.map((m) => m.id).includes(modeParam));
+
+  const [modePillClicked, setModePillClicked] = useState(validModeParam);
+  const [activeMode, setActiveMode] = useState<AppMode | null>(validModeParam ? modeParam : null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [billingOpen, setBillingOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const modeParam = searchParams.get("mode") as AppMode | null;
-  const [activeMode, setActiveMode] = useState<AppMode | null>(
-    modeParam && modeOptions.map(mode => mode.id).includes(modeParam) ? modeParam : null
-  );
+  const chatInputRef = useRef<ChatInputHandle>(null);
 
-  const { items: recentChats, loading: recentChatsLoading, refresh: refreshRecentChats } = useRecentChats();
-  const { messages, sendMessage, loading: chatLoading, loadingConversation, streamingMessageId } = useChat(initialConversationId);
+  const { items: recentChats, loading: recentChatsLoading, prependChat, updateTitle } = useRecentChats();
+
+  const { messages, sendMessage, loading: chatLoading, loadingConversation, streamingMessageId } = useChat(
+    initialConversationId,
+    {
+      onNewConversation: (chat) => prependChat(chat),
+      onTitleGenerated: (id, title) => updateTitle(id, title),
+      onResponseComplete: () => chatInputRef.current?.focus(),
+      onInsufficientCredits: () => setBillingOpen(true),
+    }
+  );
 
   const activeModeOption = modeOptions.find((m) => m.id === activeMode) ?? null;
 
@@ -67,15 +75,6 @@ export default function ChatShell({
     );
   }
 
-  // useEffect(() => {
-  //   if (modeParam && ["idea", "ask", "explore"].includes(modeParam)) {
-  //     setActiveMode(modeParam);
-  //   } else {
-  //     setActiveMode(null);
-  //   }
-  // }, [modeParam]);
-
-
   const handleModeClick = (modeId: AppMode) => {
     setModePillClicked(true);
     setActiveMode((current) => (current === modeId ? null : modeId));
@@ -83,11 +82,20 @@ export default function ChatShell({
 
   const handleChatSend = async () => {
     if (!message.trim()) return;
-    const ok = await sendMessage(message, activeMode ?? "ask");
-    if (ok) {
-      refreshRecentChats();
-      setMessage("");
-    }
+    const snapshot = message;
+    setMessage("");
+    const ok = await sendMessage(snapshot, activeMode ?? "ask");
+    if (!ok) setMessage(snapshot);
+  };
+
+  const sharedInputProps = {
+    value: message,
+    onChange: setMessage,
+    onSubmit: handleChatSend,
+    activeMode: modePillClicked ? activeModeOption : null,
+    onClearMode: () => { setActiveMode(null); setModePillClicked(false); },
+    onModeSelect: (id: AppMode) => handleModeClick(id),
+    modeOptions,
   };
 
   return (
@@ -101,11 +109,12 @@ export default function ChatShell({
         mobileOpen={sidebarOpen}
         defaultOpen={false}
         openAuthModal={() => setAuthOpen(true)}
-        openSettingsModal={() => setSettingsOpen(true)} />
+        openSettingsModal={() => setSettingsOpen(true)}
+      />
 
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar
-          plan={"Free Plan"}
+          plan="Free Plan"
           onMenuClick={() => setSidebarOpen(true)}
           user={session?.user ?? null}
           onUpgradeClick={() => setBillingOpen(true)}
@@ -126,13 +135,8 @@ export default function ChatShell({
               <div className="shrink-0 px-4 pb-4 pt-2">
                 <div className="mx-auto w-full max-w-3xl">
                   <ChatInput
-                    value={message}
-                    onChange={setMessage}
-                    onSubmit={handleChatSend}
-                    activeMode={modePillClicked ? activeModeOption : null}
-                    onClearMode={() => { setActiveMode(null); setModePillClicked(false); }}
-                    onModeSelect={(id) => { handleModeClick(id); }}
-                    modeOptions={modeOptions}
+                    ref={chatInputRef}
+                    {...sharedInputProps}
                     className="w-full"
                     loading={chatLoading || !!streamingMessageId}
                   />
@@ -142,14 +146,14 @@ export default function ChatShell({
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center px-4 md:pb-24 md:pb-32">
               <div className="w-full h-full max-w-2xl flex justify-between md:justify-center flex-col items-center">
-                <div className="pt-10 md:pt-0 md:hidden"> </div>
+                <div className="pt-10 md:pt-0 md:hidden" />
                 <div className="flex flex-col items-center gap-4 mb-8">
                   <div className="flex items-center">
                     <AcelaLogo size={30} className="md:hidden mb-1" />
                     <AcelaLogo size={38} className="hidden mb-2 md:block" />
                   </div>
                   <h1 className="bg-gradient-to-r from-text-1 to-text-1/60 bg-clip-text text-center text-[28px] font-bold text-transparent tracking-tight">
-                    What’s on your mind today?
+                    What's on your mind today?
                   </h1>
                 </div>
 
@@ -165,28 +169,18 @@ export default function ChatShell({
                     />
                   ))}
                   <ChatInput
-                    value={message}
-                    onChange={setMessage}
-                    onSubmit={handleChatSend}
-                    activeMode={modePillClicked ? activeModeOption : null}
-                    onClearMode={() => { setActiveMode(null); setModePillClicked(false); }}
-                    onModeSelect={(id) => { handleModeClick(id); }}
-                    modeOptions={modeOptions}
+                    ref={chatInputRef}
+                    {...sharedInputProps}
                     className="w-full"
                     loading={chatLoading}
                   />
                 </div>
 
-                {/* Desktop: input on its own row, pills below — keeps input width stable */}
+                {/* Desktop: input above, pills below */}
                 <div className="hidden md:flex flex-col w-full gap-3 mt-6">
                   <ChatInput
-                    value={message}
-                    onChange={setMessage}
-                    onSubmit={handleChatSend}
-                    activeMode={modePillClicked ? activeModeOption : null}
-                    onClearMode={() => { setActiveMode(null); setModePillClicked(false); }}
-                    onModeSelect={(id) => { handleModeClick(id); }}
-                    modeOptions={modeOptions}
+                    ref={chatInputRef}
+                    {...sharedInputProps}
                     className="w-full"
                     loading={chatLoading}
                   />
@@ -206,10 +200,11 @@ export default function ChatShell({
             </div>
           )}
         </main>
-      </div >
+      </div>
+
       <BillingModal open={billingOpen} onClose={() => setBillingOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-    </div >
+    </div>
   );
 }

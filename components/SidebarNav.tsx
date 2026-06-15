@@ -9,36 +9,31 @@ import {
   Compass,
   HelpCircle,
   X,
-  Send,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AcelaLogo from "./icons/AcelaLogo";
 import { RecentChat, SessionUser } from "../types";
-import { UserCircle2 } from "lucide-react"
-import { useNewChat } from "@/hooks/useNewChat"
+import { UserCircle2 } from "lucide-react";
 
 interface SidebarNavProps {
   recentChats: RecentChat[];
   recentChatsLoading?: boolean;
   activeChatId?: string;
   user: SessionUser | null;
-  /** Controls the initial open/closed state on desktop. Defaults to closed (rail-only). */
   defaultOpen?: boolean;
-  /** Mobile drawer open state — owned by parent (e.g. toggled from TopBar's hamburger). */
   mobileOpen: boolean;
   onMobileClose: () => void;
   openAuthModal: () => void;
   openSettingsModal: () => void;
 }
 
-type RailId = "new-chat" | "idea" | "explore" | "ask" | "account";
-
 const navItems = [
-  { id: "new-chat", icon: Plus, label: "New chat", href: "/" },
-  { id: "idea", icon: Lightbulb, label: "Idea Mode", href: "/?mode=idea" },
-  { id: "explore", icon: Compass, label: "Explore", href: "/?mode=explore" },
-  { id: "ask", icon: HelpCircle, label: "Ask", href: "/?mode=ask" },
+  { id: "new-chat", icon: Plus,       label: "New chat",  href: "/"             },
+  { id: "idea",     icon: Lightbulb,  label: "Idea Mode", href: "/?mode=idea"   },
+  { id: "explore",  icon: Compass,    label: "Explore",   href: "/?mode=explore" },
+  { id: "ask",      icon: HelpCircle, label: "Ask",       href: "/?mode=ask"    },
 ] as const;
 
 export default function SidebarNav({
@@ -52,36 +47,43 @@ export default function SidebarNav({
   openAuthModal,
   openSettingsModal,
 }: SidebarNavProps) {
-  const createNewChat = useNewChat();
-  // Desktop: panel open/closed beside the persistent rail.
+  const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
-  // Tracks which rail icon is "active" so the panel can highlight/scroll to it.
-  const [activeRailId, setActiveRailId] = useState<RailId | null>(null);
 
-  const handleRailClick = (id: RailId) => {
-    if (id == "account") {
-      console.log("account")
-      if (!user) {
-        openAuthModal();
-        return;
-      }
-      openSettingsModal();
-      return;
-    }
+  function handleAccountClick() {
+    if (!user) openAuthModal();
+    else openSettingsModal();
+  }
 
-    if (open && activeRailId === id) {
-      // Clicking the active item again collapses the panel.
-      setOpen(false);
-      setActiveRailId(null);
-    } else {
-      setActiveRailId(id);
-      setOpen(true);
-    }
-  };
+  const recentList = (
+    <div className="flex flex-col gap-1">
+      {recentChats.map((chat) => (
+        <Link
+          key={chat.id}
+          href={`/c/${chat.id}`}
+          className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
+            ${chat.id === activeChatId
+              ? "text-text-1 bg-white/5"
+              : "text-text-2 hover:bg-white/5 hover:text-text-1"
+            }`}
+        >
+          {chat.title}
+        </Link>
+      ))}
+    </div>
+  );
+
+  const recentSkeletons = (
+    <div className="flex flex-col gap-1 px-1">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="h-8 rounded-xl bg-white/5 animate-pulse" />
+      ))}
+    </div>
+  );
 
   return (
     <>
-      {/* Mobile backdrop for full-screen drawer */}
+      {/* Mobile backdrop */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
@@ -90,162 +92,116 @@ export default function SidebarNav({
         />
       )}
 
-      {/* ---------- DESKTOP: persistent rail + animated panel ---------- */}
-      <div className="hidden md:flex h-dvh shrink-0 bg-base border-r border-white/5">
-        <div
-          className={`flex flex-col justify-between py-5 transition-[width] duration-300 ease-in-out overflow-hidden
-            ${open ? "w-[300px]" : "w-[92px]"}`}
-        >
-          {/* Top section: toggle + nav rows */}
-          <div className="flex flex-col gap-1">
-            {/* Toggle button row */}
+      {/* ── DESKTOP: single sidebar that expands ── */}
+      <div
+        className={`hidden md:flex flex-col h-dvh shrink-0 bg-base border-r border-white/5 py-5
+          transition-[width] duration-300 ease-in-out overflow-hidden
+          ${open ? "w-[260px]" : "w-[72px]"}`}
+      >
+        {/* Top section */}
+        <div className="flex flex-col gap-1 px-3">
+          {/* Toggle / logo row */}
+          <button
+            type="button"
+            onClick={() => setOpen((p) => !p)}
+            aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+            className="flex items-center h-11 rounded-xl text-text-1 hover:bg-white/5 transition-colors px-2 gap-3"
+          >
+            <span className="shrink-0 flex items-center justify-center w-6 h-6">
+              {open
+                ? <PanelLeftClose className="h-5 w-5" strokeWidth={1.5} />
+                : <PanelLeftOpen  className="h-5 w-5" strokeWidth={1.5} />
+              }
+            </span>
+            <span className={`flex items-center gap-2 transition-[opacity,max-width] duration-200 overflow-hidden whitespace-nowrap
+              ${open ? "opacity-100 max-w-[180px] delay-100" : "opacity-0 max-w-0"}`}>
+              <AcelaLogo size={22} />
+              <span className="text-text-1 font-bold tracking-wide text-sm">ACELA</span>
+            </span>
+          </button>
+
+          <div className="h-2" />
+
+          {/* Nav items */}
+          {navItems.map(({ id, icon: Icon, label, href }) => (
             <button
+              key={id}
               type="button"
-              onClick={() => setOpen((prev) => !prev)}
-              aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-              className={`flex items-center h-12 text-text-1 hover:text-text-2 transition-colors
-                ${open ? "px-5 justify-start gap-3" : "justify-center"}`}
+              title={open ? undefined : label}
+              onClick={() => router.push(href)}
+              className="flex items-center h-10 rounded-xl text-text-1 hover:bg-white/5 transition-colors px-2 gap-3"
             >
-              {open ? (
-                <PanelLeftClose className="h-6 w-6 shrink-0" strokeWidth={1.5} />
-              ) : (
-                <PanelLeftOpen className="h-6 w-6 shrink-0" strokeWidth={1.5} />
-              )}
-              <span
-                className={`text-base font-bold tracking-wide whitespace-nowrap transition-opacity duration-200
-                  ${open ? "opacity-100 delay-150" : "opacity-0 w-0"}`}
-              >
-                ACELA
+              <span className="shrink-0 flex items-center justify-center w-6 h-6">
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+              </span>
+              <span className={`text-sm whitespace-nowrap transition-[opacity,max-width] duration-200 overflow-hidden
+                ${open ? "opacity-100 max-w-[180px] delay-100" : "opacity-0 max-w-0"}`}>
+                {label}
               </span>
             </button>
-
-            <div className={open ? "h-4" : "h-7"} />
-
-            {/* Nav rows */}
-            {navItems.map(({ id, icon: Icon, label, href }) => (
-              <Link
-                key={id}
-                href={href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (id === "new-chat") return createNewChat();
-                  setActiveRailId(id);
-                }}
-                className={`flex items-center h-12 rounded-xl text-text-1 hover:bg-white/5 transition-colors
-                  ${open ? "px-5 gap-3 mx-2" : "justify-center mx-0"}
-                  ${activeRailId === id && open ? "bg-white/5" : ""}`}
-              >
-                <Icon className="h-6 w-6 shrink-0" strokeWidth={open ? 1.75 : 1.5} />
-                <span
-                  className={`text-text-1 whitespace-nowrap transition-all duration-200
-                    ${open ? "opacity-100 max-w-[200px] delay-100" : "opacity-0 max-w-0"}`}
-                >
-                  {label}
-                </span>
-              </Link>
-            ))}
-          </div>
-
-          {/* Bottom section: Recent (only when open) + footer */}
-          <div className="flex flex-col gap-2">
-            {open && (
-              <div className="flex-1 overflow-y-auto px-3 max-h-[40vh] animate-in fade-in duration-300">
-                <p className="px-3 py-2 text-sm font-medium text-text-1">Recent</p>
-                {recentChatsLoading ? (
-                  <div className="flex flex-col gap-1 px-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="h-8 rounded-xl bg-white/5 animate-pulse" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1">
-                    {recentChats.map((chat) => (
-                      <Link
-                        key={chat.id}
-                        href={`/c/${chat.id}`}
-                        onClick={() => {}}
-                        className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
-                          ${chat.id === activeChatId
-                            ? "text-text-1 bg-white/5"
-                            : "text-text-2 hover:bg-white/5 hover:text-text-1"
-                          }`}
-                      >
-                        {chat.title}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Footer / avatar */}
-            <div
-              className={`flex items-center border-t border-white/5 pt-4 ${open ? "px-4 gap-3" : "justify-center px-0"
-                }`}
-            >
-              <button
-                type="button"
-                onClick={() => handleRailClick("account")}
-                className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0"
-              >{user ?
-                <Image
-                  src={user?.image ?? "/logo.svg"}
-                  alt="User avatar"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                /> : <UserCircle2 className="h-10 w-10 shrink-0 cursor-pointer" />
-                }
-              </button>
-              {open && (
-                <div className="flex-1 min-w-0 flex items-center justify-between animate-in fade-in duration-200">
-                  <div className="min-w-0">
-                    <p className="text-text-1 text-sm font-semibold truncate">{user?.name}</p>
-                    <p className="text-text-faint text-xs">
-                      {"Free Plan"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="Settings"
-                    className="text-text-1 hover:text-text-2 transition-colors"
-                  >
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          ))}
         </div>
-      </div >
 
-      {/* ---------- MOBILE: full-screen drawer (rail hidden entirely) ---------- */}
-      < aside
-        className={`fixed z-50 inset-y-0 left-0 w-[300px] bg-base border-r border-white/5 flex flex-col
-          transition-transform duration-200 md:hidden
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
-        }
+        {/* Recent conversations — only visible when expanded */}
+        <div className={`mt-4 flex-1 overflow-y-auto px-3 min-h-0 transition-opacity duration-200
+          ${open ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"}`}>
+          <p className="px-2 py-2 text-xs font-semibold text-text-2 uppercase tracking-wider whitespace-nowrap">
+            Recent
+          </p>
+          {recentChatsLoading ? recentSkeletons : recentList}
+        </div>
+
+        {/* Footer */}
+        <div className="px-3 pt-3 border-t border-white/5 shrink-0">
+          <button
+            type="button"
+            onClick={handleAccountClick}
+            title={open ? undefined : (user?.name ?? "Account")}
+            className="flex items-center h-11 w-full rounded-xl hover:bg-white/5 transition-colors px-2 gap-3"
+          >
+            <span className="shrink-0 h-7 w-7 rounded-full overflow-hidden ring-1 ring-white/10 relative flex items-center justify-center">
+              {user
+                ? <Image src={user.image ?? "/logo.svg"} alt="User avatar" fill className="object-cover" unoptimized />
+                : <UserCircle2 className="h-7 w-7" />
+              }
+            </span>
+            <span className={`min-w-0 text-left transition-[opacity,max-width] duration-200 overflow-hidden
+              ${open ? "opacity-100 max-w-[180px] delay-100" : "opacity-0 max-w-0"}`}>
+              <p className="text-text-1 text-sm font-semibold truncate whitespace-nowrap">{user?.name ?? "Guest"}</p>
+              <p className="text-text-faint text-xs whitespace-nowrap">Free Plan</p>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── MOBILE: full-screen drawer ── */}
+      <aside
+        className={`fixed z-50 inset-y-0 left-0 w-[280px] bg-base border-r border-white/5 flex flex-col
+          transition-transform duration-300 ease-in-out md:hidden
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-between px-5 py-5">
-          <span className="text-text-1 font-bold tracking-wide text-lg">ACELA</span>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onMobileClose}
-              aria-label="Close sidebar"
-              className="text-text-1 hover:text-text-2 transition-colors"
-            >
-              <X className="h-5 w-5" strokeWidth={1.75} />
-            </button>
+        <div className="flex items-center justify-between px-5 py-5 shrink-0">
+          <div className="flex items-center gap-2">
+            <AcelaLogo size={24} />
+            <span className="text-text-1 font-bold tracking-wide text-base">ACELA</span>
           </div>
+          <button
+            type="button"
+            onClick={onMobileClose}
+            aria-label="Close sidebar"
+            className="text-text-1 hover:text-text-2 transition-colors"
+          >
+            <X className="h-5 w-5" strokeWidth={1.75} />
+          </button>
         </div>
 
-        <nav className="flex flex-col gap-1 px-3">
+        <nav className="flex flex-col gap-1 px-3 shrink-0">
           {navItems.map(({ id, icon: Icon, label, href }) => (
             <Link
               key={id}
               href={href}
               onClick={onMobileClose}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-text-1 text-base hover:bg-white/5 transition-colors text-left"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-text-1 text-sm hover:bg-white/5 transition-colors"
             >
               <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
               {label}
@@ -253,63 +209,30 @@ export default function SidebarNav({
           ))}
         </nav>
 
-        <div className="mt-4 flex-1 overflow-y-auto px-3">
-          <p className="px-3 py-2 text-sm font-medium text-text-1">Recent</p>
-          {recentChatsLoading ? (
-            <div className="flex flex-col gap-1 px-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-8 rounded-xl bg-white/5 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1">
-              {recentChats.map((chat) => (
-                <Link
-                  key={chat.id}
-                  href={`/c/${chat.id}`}
-                  onClick={() => {}}
-                  className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
-                    ${chat.id === activeChatId
-                      ? "text-text-1 bg-white/5"
-                      : "text-text-2 hover:bg-white/5 hover:text-text-1"
-                    }`}
-                >
-                  {chat.title}
-                </Link>
-              ))}
-            </div>
-          )}
+        <div className="mt-4 flex-1 overflow-y-auto px-3 min-h-0">
+          <p className="px-3 py-2 text-xs font-semibold text-text-2 uppercase tracking-wider">Recent</p>
+          {recentChatsLoading ? recentSkeletons : recentList}
         </div>
 
-        <div className="border-t border-white/5 px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0">
-
-                <button
-                  type="button"
-                  onClick={() => handleRailClick("account")}
-                  className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0"
-                >{user ?
-                  <Image
-                    src={user?.image ?? "/logo.svg"}
-                    alt="User avatar"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  /> : <UserCircle2 className="h-10 w-10 shrink-0 cursor-pointer" />
-                  }</button>
-              </div>
-              <div className="min-w-0">
-                <p className="text-text-1 text-sm font-semibold truncate">{user?.name}</p>
-                <p className="text-text-faint text-xs">
-                  {"Free Plan"}
-                </p>
-              </div>
+        <div className="border-t border-white/5 px-4 py-4 shrink-0">
+          <button
+            type="button"
+            onClick={handleAccountClick}
+            className="flex items-center gap-3 w-full"
+          >
+            <div className="h-9 w-9 rounded-full overflow-hidden ring-1 ring-white/10 relative shrink-0 flex items-center justify-center">
+              {user
+                ? <Image src={user.image ?? "/logo.svg"} alt="User avatar" fill className="object-cover" unoptimized />
+                : <UserCircle2 className="h-9 w-9" />
+              }
             </div>
-          </div>
+            <div className="min-w-0 text-left">
+              <p className="text-text-1 text-sm font-semibold truncate">{user?.name ?? "Guest"}</p>
+              <p className="text-text-faint text-xs">Free Plan</p>
+            </div>
+          </button>
         </div>
-      </aside >
+      </aside>
     </>
   );
 }

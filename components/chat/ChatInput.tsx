@@ -1,9 +1,13 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Plus, Send, Loader2 } from "lucide-react";
 import ActiveModeTag from "../ActiveModeTag";
 import { AppMode, ModeOption } from "@/types";
+
+export interface ChatInputHandle {
+  focus: () => void;
+}
 
 interface ChatInputProps {
   value?: string;
@@ -18,7 +22,7 @@ interface ChatInputProps {
   loading?: boolean;
 }
 
-export default function ChatInput({
+const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput({
   value = "",
   onChange,
   onSubmit,
@@ -29,9 +33,14 @@ export default function ChatInput({
   modeOptions = [],
   className = "",
   loading = false,
-}: ChatInputProps) {
+}, ref) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus() { textareaRef.current?.focus(); },
+  }));
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -56,6 +65,7 @@ export default function ChatInput({
       className={`rounded-x10 bg-card border border-white/5 px-4 pt-4 pb-3 shadow-lg shadow-black/20 ${className}`}
     >
       <textarea
+        ref={textareaRef}
         disabled={loading}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
@@ -117,4 +127,6 @@ export default function ChatInput({
       </div>
     </div>
   );
-}
+});
+
+export default ChatInput;

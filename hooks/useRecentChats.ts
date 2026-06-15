@@ -10,16 +10,27 @@ export function useRecentChats(initialLimit = 20) {
   const notify = useNotification();
   const [items, setItems] = useState<RecentChat[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  // loading is only true during the very first fetch, not on refresh
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [version, setVersion] = useState(0);
 
-  function refresh() {
-    setVersion(v => v + 1);
+  function prependChat(chat: RecentChat) {
+    setItems((prev) => {
+      // Avoid duplicates (e.g. if refresh and prepend race)
+      if (prev.some((c) => c.id === chat.id)) return prev;
+      return [chat, ...prev];
+    });
   }
 
-  async function load() {
-    setLoading(true);
+  // Update title of an existing item in-place (called after title generation)
+  function updateTitle(id: string, title: string) {
+    setItems((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, title } : c))
+    );
+  }
+
+  async function load(showSkeleton = false) {
+    if (showSkeleton) setLoading(true);
     try {
       const data = await fetchRecentChats({ limit: initialLimit });
       setItems(data.items);
@@ -32,8 +43,8 @@ export function useRecentChats(initialLimit = 20) {
   }
 
   useEffect(() => {
-    load();
-  }, [version, initialLimit]);
+    load(true);
+  }, [initialLimit]);
 
   async function loadMore() {
     if (!nextCursor || loadingMore) return;
@@ -60,6 +71,7 @@ export function useRecentChats(initialLimit = 20) {
     loading,
     loadingMore,
     loadMore,
-    refresh,
+    prependChat,
+    updateTitle,
   };
 }

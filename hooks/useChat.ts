@@ -2,41 +2,44 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { AppMode, ChatMessage } from "@/types";
-import { fetchConversationMessages, sendChatMessage } from "@/lib/chat-api";
+import { AppMode, ChatMessage, RecentChat } from "@/types";
+import { fetchConversationMessages, generateConversationTitle, sendChatMessage } from "@/lib/chat-api";
 import { useNotification } from "@/context/NotificationContext";
 import { getNotificationMessage } from "@/lib/errors";
 
-export function useChat(initialConversationId?: string) {
+interface UseChatCallbacks {
+  /** Called with the new RecentChat when a brand-new conversation is created. */
+  onNewConversation?: (chat: RecentChat) => void;
+  /** Called with the conversation id + generated title after title arrives. */
+  onTitleGenerated?: (id: string, title: string) => void;
+  /** Called after the AI reply finishes streaming so the input can be re-focused. */
+  onResponseComplete?: () => void;
+  /** Called when the server returns 402 Insufficient Credits. */
+  onInsufficientCredits?: () => void;
+}
+
+export function useChat(initialConversationId?: string, callbacks: UseChatCallbacks = {}) {
+  const { onNewConversation, onTitleGenerated, onResponseComplete, onInsufficientCredits } = callbacks;
   const pathname = usePathname();
   const notify = useNotification();
 
-  const [conversationId, setConversationId] = useState<string | undefined>(
-    initialConversationId
-  );
+  const [conversationId, setConversationId] = useState<string | undefined>(initialConversationId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  // True while the initial message list for an existing conversation is being fetched.
   const [loadingConversation, setLoadingConversation] = useState(!!initialConversationId);
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+  useEffect(() => { setHydrated(true); }, []);
 
   useEffect(() => {
     if (!initialConversationId) return;
-
     setLoadingConversation(true);
-
-    async function loadConversation() {
-      const data = await fetchConversationMessages(initialConversationId!);
-      setMessages(data.messages);
-      setConversationId(initialConversationId);
-    }
-
-    loadConversation()
+    fetchConversationMessages(initialConversationId)
+      .then((data) => {
+        setMessages(data.messages);
+        setConversationId(initialConversationId);
+      })
       .catch(() => setMessages([]))
       .finally(() => setLoadingConversation(false));
   }, [hydrated, initialConversationId]);
@@ -44,16 +47,11 @@ export function useChat(initialConversationId?: string) {
   function streamContent(messageId: string, fullText: string): Promise<void> {
     const tokens = fullText.split(/(\s+)/);
     let idx = 0;
-
     return new Promise<void>((resolve) => {
       const tick = () => {
         idx = Math.min(idx + 5, tokens.length);
         setMessages((prev) =>
-          prev.map((m) =>
-            m._id === messageId
-              ? { ...m, content: tokens.slice(0, idx).join("") }
-              : m
-          )
+          prev.map((m) => m._id === messageId ? { ...m, content: tokens.slice(0, idx).join("") } : m)
         );
         if (idx < tokens.length) {
           setTimeout(tick, 15);
@@ -87,12 +85,20 @@ export function useChat(initialConversationId?: string) {
       const result = await sendChatMessage({ conversationId, message: trimmed, mode });
 
       setLoading(false);
+
+      const isNew = !conversationId;
       setConversationId(result.conversationId);
 
-      // Update the URL without triggering a Next.js navigation (which would unmount
-      // ChatShell, discard all in-memory state, and cause the conversation flash).
       if (pathname === "/") {
         window.history.replaceState(null, "", `/c/${result.conversationId}?mode=${mode}`);
+      }
+
+      // Optimistically add new conversation to sidebar
+      if (isNew) {
+        onNewConversation?.({
+          id: result.conversationId,
+          title: trimmed.slice(0, 60),
+        });
       }
 
       const assistantId = crypto.randomUUID();
@@ -112,10 +118,27 @@ export function useChat(initialConversationId?: string) {
 
       await streamContent(assistantId, result.reply);
 
+      // Focus input now that the response is fully rendered
+      onResponseComplete?.();
+
+      // Generate a proper title in the background (new conversations only)
+      if (isNew) {
+        generateConversationTitle(result.conversationId, trimmed)
+          .then((title) => {
+            if (title) onTitleGenerated?.(result.conversationId, title);
+          })
+          .catch(() => {});
+      }
+
       return true;
     } catch (err) {
       setLoading(false);
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
+
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("Insufficient credits")) {
+        onInsufficientCredits?.();
+      }
       notify(getNotificationMessage(err), "error");
       return false;
     }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SessionUser } from "@/types";
 import { UserCircle2 } from "lucide-react";
+import AcelaLogo from "./icons/AcelaLogo";
 
 interface TopBarProps {
   plan: string;
@@ -40,14 +41,17 @@ export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAu
 
   return (
     <div className="relative flex items-center justify-between px-4 py-4 md:px-6">
-      <button
-        type="button"
-        onClick={onMenuClick}
-        aria-label="Open menu"
-        className="text-text-1 md:hidden"
-      >
-        <Menu className="h-6 w-6" strokeWidth={1.75} />
-      </button>
+      <div className="flex items-center gap-2 md:hidden">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+          className="text-text-1"
+        >
+          <Menu className="h-6 w-6" strokeWidth={1.75} />
+        </button>
+        <AcelaLogo size={24} />
+      </div>
 
       {/* mobile: fixed → centers on viewport; desktop: absolute → centers on content area.
           top-0 is flush to the screen in both cases since the TopBar starts at y=0. */}

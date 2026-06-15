@@ -48,6 +48,20 @@ export async function fetchRecentChats(params?: {
   }>;
 }
 
+export async function generateConversationTitle(
+  conversationId: string,
+  message: string
+): Promise<string | null> {
+  const res = await fetch(`/api/conversations/${conversationId}/title`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) return null;
+  const data = await res.json() as { title: string };
+  return data.title ?? null;
+}
+
 export async function fetchConversationMessages(conversationId: string) {
   const res = await fetch(`/api/conversations/${conversationId}/messages`);
   if (!res.ok) throw new Error("Failed to load conversation messages");
