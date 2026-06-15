@@ -31,7 +31,7 @@ interface SidebarNavProps {
 
 const navItems = [
   { id: "new-chat", icon: Plus,       label: "New chat",  href: "/"             },
-  { id: "idea",     icon: Lightbulb,  label: "Idea Mode", href: "/?mode=idea"   },
+  { id: "idea",     icon: Lightbulb,  label: "Idea", href: "/?mode=idea"   },
   { id: "explore",  icon: Compass,    label: "Explore",   href: "/?mode=explore" },
   { id: "ask",      icon: HelpCircle, label: "Ask",       href: "/?mode=ask"    },
 ] as const;

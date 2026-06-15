@@ -19,8 +19,8 @@ import ChatWindow from "./chat/ChatWindow";
 import ChatSkeleton from "./skeletons/ChatSkeleton";
 
 const modeOptions: ModeOption[] = [
-  { id: "idea", label: "Idea mode", icon: Lightbulb },
-  { id: "ask", label: "Ask mode", icon: HelpCircle },
+  { id: "idea", label: "Idea", icon: Lightbulb },
+  { id: "ask", label: "Ask", icon: HelpCircle },
   { id: "explore", label: "Explore", icon: Compass },
 ];
 
