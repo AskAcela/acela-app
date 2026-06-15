@@ -78,9 +78,9 @@ export function estimateTokensFromMessages(
 }
 
 export function initialCreditsForGuest() {
-  return FREE_CREDITS.guest;
+  return FREE_CREDITS.guest_free;
 }
 
 export function initialCreditsForAuthenticated() {
-  return FREE_CREDITS.authenticated;
+  return FREE_CREDITS.authenticated_free;
 }
