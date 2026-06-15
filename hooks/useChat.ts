@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { AppMode, ChatMessage } from "@/types";
 import { fetchConversationMessages, sendChatMessage } from "@/lib/chat-api";
 import { useNotification } from "@/context/NotificationContext";
 import { getNotificationMessage } from "@/lib/errors";
 
 export function useChat(initialConversationId?: string) {
-  const router = useRouter();
   const pathname = usePathname();
   const notify = useNotification();
 
@@ -18,6 +17,8 @@ export function useChat(initialConversationId?: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  // True while the initial message list for an existing conversation is being fetched.
+  const [loadingConversation, setLoadingConversation] = useState(!!initialConversationId);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -25,19 +26,23 @@ export function useChat(initialConversationId?: string) {
   }, []);
 
   useEffect(() => {
+    if (!initialConversationId) return;
+
+    setLoadingConversation(true);
+
     async function loadConversation() {
-      if (!initialConversationId) return;
-      const data = await fetchConversationMessages(initialConversationId);
+      const data = await fetchConversationMessages(initialConversationId!);
       setMessages(data.messages);
       setConversationId(initialConversationId);
     }
-    loadConversation().catch(() => {
-      setMessages([]);
-    });
+
+    loadConversation()
+      .catch(() => setMessages([]))
+      .finally(() => setLoadingConversation(false));
   }, [hydrated, initialConversationId]);
 
   function streamContent(messageId: string, fullText: string): Promise<void> {
-    const tokens = fullText.split(/(\s+)/); // split on whitespace, preserving spaces
+    const tokens = fullText.split(/(\s+)/);
     let idx = 0;
 
     return new Promise<void>((resolve) => {
@@ -57,7 +62,7 @@ export function useChat(initialConversationId?: string) {
           resolve();
         }
       };
-      setTimeout(tick, 30); // brief pause before first token appears
+      setTimeout(tick, 30);
     });
   }
 
@@ -81,13 +86,13 @@ export function useChat(initialConversationId?: string) {
     try {
       const result = await sendChatMessage({ conversationId, message: trimmed, mode });
 
-      // Stop the thinking indicator the moment the response arrives,
-      // then immediately begin streaming the content in.
       setLoading(false);
       setConversationId(result.conversationId);
 
+      // Update the URL without triggering a Next.js navigation (which would unmount
+      // ChatShell, discard all in-memory state, and cause the conversation flash).
       if (pathname === "/") {
-        router.replace(`/c/${result.conversationId}?mode=${mode}`);
+        window.history.replaceState(null, "", `/c/${result.conversationId}?mode=${mode}`);
       }
 
       const assistantId = crypto.randomUUID();
@@ -120,6 +125,7 @@ export function useChat(initialConversationId?: string) {
     conversationId,
     messages,
     loading,
+    loadingConversation,
     streamingMessageId,
     setMessages,
     sendMessage,

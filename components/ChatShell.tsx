@@ -16,6 +16,7 @@ import SettingsModal from "./modals/SettingsModal";
 import { useChat } from "@/hooks/useChat";
 import { useRecentChats } from "@/hooks/useRecentChats";
 import ChatWindow from "./chat/ChatWindow";
+import ChatSkeleton from "./skeletons/ChatSkeleton";
 
 const modeOptions: ModeOption[] = [
   { id: "idea", label: "Idea mode", icon: Lightbulb },
@@ -45,15 +46,23 @@ export default function ChatShell({
     modeParam && modeOptions.map(mode => mode.id).includes(modeParam) ? modeParam : null
   );
 
-  const { items: recentChats, loading: recentLoading, refresh: refreshRecentChats } = useRecentChats();
-  const { messages, sendMessage, loading: chatLoading, streamingMessageId } = useChat(initialConversationId);
+  const { items: recentChats, loading: recentChatsLoading, refresh: refreshRecentChats } = useRecentChats();
+  const { messages, sendMessage, loading: chatLoading, loadingConversation, streamingMessageId } = useChat(initialConversationId);
 
   const activeModeOption = modeOptions.find((m) => m.id === activeMode) ?? null;
 
   if (sessionStatus === "loading") {
     return (
-      <div className="flex h-dvh w-screen items-center justify-center bg-base text-text-2">
-        Loading...
+      <div className="flex h-dvh bg-base overflow-hidden">
+        <div className="hidden md:flex h-dvh shrink-0 w-[92px] bg-base border-r border-white/5 animate-pulse" />
+        <div className="flex flex-1 flex-col min-w-0">
+          <div className="flex items-center justify-between px-4 py-4 md:px-6">
+            <div className="h-6 w-6 rounded bg-white/5 animate-pulse md:hidden" />
+            <div className="h-8 w-32 rounded-b-x10 bg-white/5 animate-pulse mx-auto md:mx-0" />
+            <div className="h-10 w-10 rounded-full bg-white/5 animate-pulse md:hidden" />
+          </div>
+          <ChatSkeleton />
+        </div>
       </div>
     );
   }
@@ -85,6 +94,7 @@ export default function ChatShell({
     <div className="flex h-dvh bg-base overflow-hidden">
       <SidebarNav
         recentChats={recentChats}
+        recentChatsLoading={recentChatsLoading}
         user={session?.user ?? null}
         activeChatId={initialConversationId}
         onMobileClose={() => setSidebarOpen(false)}
@@ -104,7 +114,9 @@ export default function ChatShell({
         />
 
         <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {messages.length > 0 ? (
+          {loadingConversation ? (
+            <ChatSkeleton />
+          ) : messages.length > 0 ? (
             <>
               <ChatWindow
                 messages={messages}

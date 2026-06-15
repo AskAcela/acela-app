@@ -103,6 +103,10 @@ export async function POST(req: NextRequest) {
     : { guestId };
 
   let conversation = null as typeof Conversation.prototype | null;
+  let isNewConversation = false;
+  // Pre-generate an ObjectId so we can reference it inside the transaction
+  // before Conversation.create runs (which is now inside the transaction).
+  const newConvObjectId = new mongoose.Types.ObjectId();
 
   if (conversationId) {
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
@@ -116,34 +120,29 @@ export async function POST(req: NextRequest) {
       _id: conversationId,
       ...ownerQuery,
     });
-  }
 
-  if (!conversation) {
-    // check if conversation exist with id, but not user owned
-    const existingConversation = await Conversation.findOne({
-      _id: conversationId,
-    });
-    if (existingConversation) {
-      return NextResponse.json(
-        { error: "Conversation not found" },
-        { status: 404 }
-      );
+    if (!conversation) {
+      // Conversation exists but belongs to someone else → 404.
+      const existingConversation = await Conversation.findOne({ _id: conversationId });
+      if (existingConversation) {
+        return NextResponse.json(
+          { error: "Conversation not found" },
+          { status: 404 }
+        );
+      }
+      // Provided ID doesn't exist at all — treat as a new conversation.
+      isNewConversation = true;
     }
-    const title = latestUserMessage.slice(0, 60) || "New conversation";
-
-    conversation = await Conversation.create({
-      ...ownerQuery,
-      title,
-      messageCount: 0,
-      tokensUsedTotal: 0,
-      creditsChargedTotal: 0,
-      archived: false,
-      lastMessageAt: new Date(),
-    });
+  } else {
+    isNewConversation = true;
   }
+
+  // The effective conversation ID — used for loading history and in the transaction.
+  const effectiveConvId = conversation?._id ?? newConvObjectId;
+  const conversationTitle = latestUserMessage.slice(0, 60) || "New conversation";
 
   const previousMessages = await Message.find({
-    conversationId: conversation._id,
+    conversationId: effectiveConvId,
   })
     .sort({ createdAt: 1 })
     .lean();
@@ -229,10 +228,31 @@ export async function POST(req: NextRequest) {
         throw new Error("INSUFFICIENT_CREDITS");
       }
 
+      // Create the conversation inside the transaction so that if anything
+      // below fails (messages, user debit) the conversation is rolled back too,
+      // leaving no orphaned empty conversations in the database.
+      if (isNewConversation) {
+        await Conversation.create(
+          [
+            {
+              _id: effectiveConvId,
+              ...ownerQuery,
+              title: conversationTitle,
+              messageCount: 0,
+              tokensUsedTotal: 0,
+              creditsChargedTotal: 0,
+              archived: false,
+              lastMessageAt: new Date(),
+            },
+          ],
+          { session: dbSession }
+        );
+      }
+
       await Message.create(
         [
           {
-            conversationId: conversation._id,
+            conversationId: effectiveConvId,
             userId: currentUser._id,
             role: "user",
             content: latestUserMessage,
@@ -241,15 +261,13 @@ export async function POST(req: NextRequest) {
             metadata: { source: "client" },
           },
           {
-            conversationId: conversation._id,
+            conversationId: effectiveConvId,
             userId: currentUser._id,
             role: "assistant",
             content: assistantText,
             tokenCount: totalTokensUsed,
             creditsCharged,
-            metadata: {
-              source: "agent",
-            },
+            metadata: { source: "agent" },
           },
         ],
         { session: dbSession, ordered: true }
@@ -262,24 +280,20 @@ export async function POST(req: NextRequest) {
             creditsRemaining: -creditsCharged,
             creditsSpentTotal: creditsCharged,
           },
-          $set: {
-            lastSeenAt: new Date(),
-          },
+          $set: { lastSeenAt: new Date() },
         },
         { session: dbSession }
       );
 
       await Conversation.updateOne(
-        { _id: conversation._id },
+        { _id: effectiveConvId },
         {
           $inc: {
             messageCount: 2,
             tokensUsedTotal: totalTokensUsed,
             creditsChargedTotal: creditsCharged,
           },
-          $set: {
-            lastMessageAt: new Date(),
-          },
+          $set: { lastMessageAt: new Date() },
         },
         { session: dbSession }
       );
@@ -310,7 +324,7 @@ export async function POST(req: NextRequest) {
 
   const response = NextResponse.json(
     {
-      conversationId: conversation._id.toString(),
+      conversationId: effectiveConvId.toString(),
       reply: assistantText,
       creditsRemaining: userDoc.creditsRemaining - creditsCharged,
       creditsCharged,

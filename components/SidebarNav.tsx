@@ -20,6 +20,7 @@ import { useNewChat } from "@/hooks/useNewChat"
 
 interface SidebarNavProps {
   recentChats: RecentChat[];
+  recentChatsLoading?: boolean;
   activeChatId?: string;
   user: SessionUser | null;
   /** Controls the initial open/closed state on desktop. Defaults to closed (rail-only). */
@@ -42,6 +43,7 @@ const navItems = [
 
 export default function SidebarNav({
   recentChats,
+  recentChatsLoading = false,
   activeChatId,
   user,
   defaultOpen = false,
@@ -149,23 +151,30 @@ export default function SidebarNav({
             {open && (
               <div className="flex-1 overflow-y-auto px-3 max-h-[40vh] animate-in fade-in duration-300">
                 <p className="px-3 py-2 text-sm font-medium text-text-1">Recent</p>
-                <div className="flex flex-col gap-1">
-                  {recentChats.map((chat) => (
-                    <Link
-                      key={chat.id}
-                      href={`/c/${chat.id}`}
-                      onClick={(e) => {
-                      }}
-                      className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
-                        ${chat.id === activeChatId
-                          ? "text-text-1 bg-white/5"
-                          : "text-text-2 hover:bg-white/5 hover:text-text-1"
-                        }`}
-                    >
-                      {chat.title}
-                    </Link>
-                  ))}
-                </div>
+                {recentChatsLoading ? (
+                  <div className="flex flex-col gap-1 px-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-8 rounded-xl bg-white/5 animate-pulse" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    {recentChats.map((chat) => (
+                      <Link
+                        key={chat.id}
+                        href={`/c/${chat.id}`}
+                        onClick={() => {}}
+                        className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
+                          ${chat.id === activeChatId
+                            ? "text-text-1 bg-white/5"
+                            : "text-text-2 hover:bg-white/5 hover:text-text-1"
+                          }`}
+                      >
+                        {chat.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -246,23 +255,30 @@ export default function SidebarNav({
 
         <div className="mt-4 flex-1 overflow-y-auto px-3">
           <p className="px-3 py-2 text-sm font-medium text-text-1">Recent</p>
-          <div className="flex flex-col gap-1">
-            {recentChats.map((chat) => (
-              <Link
-                key={chat.id}
-                href={`/c/${chat.id}`}
-                onClick={(e) => {
-                }}
-                className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
-                  ${chat.id === activeChatId
-                    ? "text-text-1 bg-white/5"
-                    : "text-text-2 hover:bg-white/5 hover:text-text-1"
-                  }`}
-              >
-                {chat.title}
-              </Link>
-            ))}
-          </div>
+          {recentChatsLoading ? (
+            <div className="flex flex-col gap-1 px-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-8 rounded-xl bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {recentChats.map((chat) => (
+                <Link
+                  key={chat.id}
+                  href={`/c/${chat.id}`}
+                  onClick={() => {}}
+                  className={`truncate rounded-xl px-3 py-2 text-left text-sm transition-colors block
+                    ${chat.id === activeChatId
+                      ? "text-text-1 bg-white/5"
+                      : "text-text-2 hover:bg-white/5 hover:text-text-1"
+                    }`}
+                >
+                  {chat.title}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="border-t border-white/5 px-4 py-4">
