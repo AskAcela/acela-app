@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Lightbulb, HelpCircle, Compass } from "lucide-react";
@@ -44,6 +44,16 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const chatInputRef = useRef<ChatInputHandle>(null);
+
+  useEffect(() => {
+    if (validModeParam) {
+      setActiveMode(modeParam);
+      setModePillClicked(true);
+    } else {
+      setActiveMode(null);
+      setModePillClicked(false);
+    }
+  }, [modeParam]);
 
   const { items: recentChats, loading: recentChatsLoading, prependChat, updateTitle } = useRecentChats();
 
