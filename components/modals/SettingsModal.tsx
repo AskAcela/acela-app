@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { signOut, useSession } from "next-auth/react";
 import { LogOut, Mail, User, Zap } from "lucide-react";
+import { formatCredits } from "@/lib/credits";
 
 interface SettingsModalProps {
   open: boolean;
@@ -94,7 +95,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
                       <span className="text-xs">Usage</span>
                     </div>
                     <span className="text-xs text-text-1 font-medium tabular-nums">
-                      {credits.creditsSpentTotal} <span className="text-text-faint">/ {totalCredits}</span>
+                      {formatCredits(credits.creditsSpentTotal)} <span className="text-text-faint">/ {formatCredits(totalCredits!)}</span>
                     </span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-white/8 overflow-hidden">
@@ -104,7 +105,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
                     />
                   </div>
                   <div className="flex justify-between text-xs text-text-faint">
-                    <span>{credits.creditsRemaining} remaining</span>
+                    <span>{formatCredits(credits.creditsRemaining)} remaining</span>
                     <span className="capitalize">{credits.plan.replace(/_/g, " ")}</span>
                   </div>
                 </div>

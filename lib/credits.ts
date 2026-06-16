@@ -60,7 +60,11 @@ export function creditsForPurchase(amountUSD: 2 | 5 | 10): number {
 
 export function tokensToCredits(tokens: number): number {
   if (!Number.isFinite(tokens) || tokens <= 0) return 0;
-  return Math.max(1, Math.ceil(tokens / TOKENS_PER_CREDIT));
+  return tokens / TOKENS_PER_CREDIT;
+}
+
+export function formatCredits(credits: number): string {
+  return credits.toFixed(2);
 }
 
 export function estimateTokensFromText(text: string): number {

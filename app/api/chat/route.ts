@@ -224,10 +224,6 @@ export async function POST(req: NextRequest) {
         throw new Error("USER_NOT_FOUND");
       }
 
-      if (currentUser.creditsRemaining < creditsCharged) {
-        throw new Error("INSUFFICIENT_CREDITS");
-      }
-
       // Create the conversation inside the transaction so that if anything
       // below fails (messages, user debit) the conversation is rolled back too,
       // leaving no orphaned empty conversations in the database.
@@ -300,20 +296,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error during transaction:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to persist chat";
-
-    if (message === "INSUFFICIENT_CREDITS") {
-      return NextResponse.json(
-        {
-          error: "Insufficient credits",
-          creditsRemaining: userDoc.creditsRemaining,
-          creditsCharged,
-        },
-        { status: 402 }
-      );
-    }
-
     return NextResponse.json(
       { error: "Failed to save conversation" },
       { status: 500 }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",
+    "@tailwindcss/typography": "^0.5.20",
     "lucide-react": "^1.18.0",
     "mongodb": "^7.3.0",
     "mongoose": "^9.7.0",
