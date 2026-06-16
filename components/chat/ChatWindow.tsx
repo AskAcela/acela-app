@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
 import ThinkingMessage from "./ThinkingMessage";
@@ -18,10 +18,10 @@ export default function ChatWindow({
   const bottomRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     atBottomRef.current = scrollHeight - scrollTop - clientHeight < 80;
-  };
+  }, []);
 
   useEffect(() => {
     if (atBottomRef.current) {

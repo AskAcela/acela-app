@@ -1,9 +1,10 @@
 "use client";
 
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export default function AssistantMarkdown({ content }: { content: string }) {
+export default memo(function AssistantMarkdown({ content }: { content: string }) {
   return (
     <div className={`
       prose prose-invert max-w-none text-sm leading-relaxed
@@ -41,4 +42,4 @@ export default function AssistantMarkdown({ content }: { content: string }) {
       </ReactMarkdown>
     </div>
   );
-}
+});

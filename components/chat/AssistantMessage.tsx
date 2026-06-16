@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Copy, Check } from "lucide-react";
 import AssistantMarkdown from "./AssistantMarkdown";
 
@@ -9,7 +9,7 @@ interface AssistantMessageProps {
   streaming?: boolean;
 }
 
-export default function AssistantMessage({ text, streaming = false }: AssistantMessageProps) {
+export default memo(function AssistantMessage({ text, streaming = false }: AssistantMessageProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -39,4 +39,4 @@ export default function AssistantMessage({ text, streaming = false }: AssistantM
       )}
     </div>
   );
-}
+});

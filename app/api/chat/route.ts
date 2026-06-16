@@ -269,14 +269,16 @@ export async function POST(req: NextRequest) {
         { session: dbSession, ordered: true }
       );
 
+      const newCreditsRemaining = Math.max(0, currentUser.creditsRemaining - creditsCharged);
+
       await User.updateOne(
         { _id: currentUser._id },
         {
-          $inc: {
-            creditsRemaining: -creditsCharged,
-            creditsSpentTotal: creditsCharged,
+          $set: {
+            creditsRemaining: newCreditsRemaining,
+            lastSeenAt: new Date(),
           },
-          $set: { lastSeenAt: new Date() },
+          $inc: { creditsSpentTotal: creditsCharged },
         },
         { session: dbSession }
       );
@@ -308,7 +310,7 @@ export async function POST(req: NextRequest) {
     {
       conversationId: effectiveConvId.toString(),
       reply: assistantText,
-      creditsRemaining: userDoc.creditsRemaining - creditsCharged,
+      creditsRemaining: Math.max(0, userDoc.creditsRemaining - creditsCharged),
       creditsCharged,
       tokensUsed: totalTokensUsed,
       plan: userDoc.plan,
