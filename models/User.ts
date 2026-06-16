@@ -14,7 +14,6 @@ const UserSchema = new Schema(
       unique: true,
       sparse: true,
       index: true,
-      default: null,
     },
     image: {
       type: String,
@@ -27,7 +26,6 @@ const UserSchema = new Schema(
       unique: true,
       sparse: true,
       index: true,
-      default: null,
     },
 
     isGuest: {
