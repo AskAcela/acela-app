@@ -4,21 +4,21 @@ export const plans = [
     screen_name: "Free Plan",
     usd_price: 0,
     free: true,
-    credits: 5
+    credits: 50
   },
   {
     name: "authenticated_free",
     screen_name: "Free Plan",
     usd_price: 0,
     free: true,
-    credits: 10
+    credits: 100
   },
   {
     name: "purchase_2",
     screen_name: "Mini",
     usd_price: 2,
     free: false,
-    credits: 40
+    credits: 400
   },
   {
     name: "purchase_5",

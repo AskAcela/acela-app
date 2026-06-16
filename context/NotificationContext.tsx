@@ -3,6 +3,14 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import NotificationContainer from "@/components/NotificationContainer";
 
+function uuid() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 export type NotificationType = "info" | "success" | "error";
 
 export interface Notification {
@@ -28,7 +36,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const notify = useCallback(
     (message: string, type: NotificationType = "info") => {
-      const id = crypto.randomUUID();
+      const id = uuid();
       setNotifications((prev) => [...prev, { id, type, message }]);
       const duration = type === "error" ? 6000 : 4000;
       setTimeout(() => dismiss(id), duration);

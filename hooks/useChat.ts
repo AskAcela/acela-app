@@ -7,6 +7,14 @@ import { fetchConversationMessages, generateConversationTitle, sendChatMessage }
 import { useNotification } from "@/context/NotificationContext";
 import { getNotificationMessage } from "@/lib/errors";
 
+function uuid() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 interface UseChatCallbacks {
   /** Called with the new RecentChat when a brand-new conversation is created. */
   onNewConversation?: (chat: RecentChat) => void;
@@ -70,7 +78,7 @@ export function useChat(initialConversationId?: string, callbacks: UseChatCallba
 
     setLoading(true);
 
-    const tempId = crypto.randomUUID();
+    const tempId = uuid();
     const tempUserMessage: ChatMessage = {
       _id: tempId,
       conversationId: conversationId ?? "temp",
@@ -101,7 +109,7 @@ export function useChat(initialConversationId?: string, callbacks: UseChatCallba
         });
       }
 
-      const assistantId = crypto.randomUUID();
+      const assistantId = uuid();
       setMessages((prev) => [
         ...prev.filter((m) => m._id !== tempId),
         tempUserMessage,
