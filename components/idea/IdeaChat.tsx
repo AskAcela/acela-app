@@ -55,12 +55,26 @@ export default function IdeaChat({
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sessionOver = timeLeft <= 0;
 
-  const timerPaused = loading || !!streamingMessageId || input.trim().length > 0;
+  const timerPaused = loading || !!streamingMessageId || isTyping;
+
+  // Focus input on mount (session just started)
+  useEffect(() => { textareaRef.current?.focus(); }, []);
+
+  // Re-focus when the agent finishes responding
+  const prevLoadingRef = useRef(loading);
+  useEffect(() => {
+    if (prevLoadingRef.current && !loading && !sessionOver) {
+      textareaRef.current?.focus();
+    }
+    prevLoadingRef.current = loading;
+  }, [loading, sessionOver]);
 
   useEffect(() => {
     if (timeLeft <= 0 || timerPaused) return;
@@ -285,9 +299,18 @@ export default function IdeaChat({
                 ref={textareaRef}
                 value={input}
                 onInput={handleInput}
-                onKeyDown={handleKeyDown}
                 placeholder="Describe your idea…"
                 rows={1}
+                onKeyDown={(e) => {
+                  handleKeyDown(e);
+                  setIsTyping(true);
+                  if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+                  typingTimerRef.current = setTimeout(() => setIsTyping(false), 1500);
+                }}
+                onBlur={() => {
+                  setIsTyping(false);
+                  if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+                }}
                 className="flex-1 bg-transparent text-text-1 placeholder:text-text-faint text-sm resize-none outline-none leading-relaxed"
                 style={{ maxHeight: 120 }}
               />
