@@ -62,11 +62,24 @@ export async function generateConversationTitle(
   return data.title ?? null;
 }
 
+export async function fetchIdeaSummary(
+  conversationId: string
+): Promise<{ summary: string; tokensUsed: number }> {
+  const res = await fetch("/api/idea/summary", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ conversationId }),
+  });
+  if (!res.ok) throw new Error("Failed to generate summary");
+  return res.json();
+}
+
 export async function fetchConversationMessages(conversationId: string) {
   const res = await fetch(`/api/conversations/${conversationId}/messages`);
   if (!res.ok) throw new Error("Failed to load conversation messages");
 
   return res.json() as Promise<{
     messages: ChatMessage[];
+    ideaSummary: string | null;
   }>;
 }

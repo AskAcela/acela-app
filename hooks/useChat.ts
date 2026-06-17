@@ -33,6 +33,7 @@ export function useChat(initialConversationId?: string, callbacks: UseChatCallba
 
   const [conversationId, setConversationId] = useState<string | undefined>(initialConversationId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [ideaSummary, setIdeaSummary] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [loadingConversation, setLoadingConversation] = useState(!!initialConversationId);
@@ -46,6 +47,7 @@ export function useChat(initialConversationId?: string, callbacks: UseChatCallba
     fetchConversationMessages(initialConversationId)
       .then((data) => {
         setMessages(data.messages);
+        setIdeaSummary(data.ideaSummary ?? null);
         setConversationId(initialConversationId);
       })
       .catch(() => setMessages([]))
@@ -152,13 +154,24 @@ export function useChat(initialConversationId?: string, callbacks: UseChatCallba
     }
   }
 
+  function resetConversation() {
+    setConversationId(undefined);
+    setMessages([]);
+    setIdeaSummary(null);
+    setLoading(false);
+    setStreamingMessageId(null);
+    setLoadingConversation(false);
+  }
+
   return {
     conversationId,
     messages,
+    ideaSummary,
     loading,
     loadingConversation,
     streamingMessageId,
     setMessages,
     sendMessage,
+    resetConversation,
   };
 }

@@ -4,13 +4,18 @@ import PlanCard from "../PlanCard";
 import { CircleBadge, HeptagonBadge, StarBadge } from "../PlanBadges";
 import Modal from "./Modal";
 
+const PURCHASE_URL = "https://t.me/+szDqEcFcKMEyMTk8";
+
+function openPurchase() {
+  window.open(PURCHASE_URL, "_blank", "noopener,noreferrer");
+}
+
 interface BillingModalProps {
   open: boolean;
   onClose: () => void;
-  onSelectPlan?: (plan: "mini" | "standard" | "mega") => void;
 }
 
-export default function BillingModal({ open, onClose, onSelectPlan }: BillingModalProps) {
+export default function BillingModal({ open, onClose }: BillingModalProps) {
   return (
     <Modal open={open} onClose={onClose} maxWidth="max-w-3xl md:max-w-5xl lg:max-w-7xl">
       <div className="max-h-[85vh] overflow-y-auto py-2 text-center">
@@ -28,7 +33,7 @@ export default function BillingModal({ open, onClose, onSelectPlan }: BillingMod
             price="$2"
             badge={<CircleBadge />}
             ctaLabel="Get mini plan"
-            onSelect={() => onSelectPlan?.("mini")}
+            onSelect={openPurchase}
             features={[
               "Quick token boost: Instantly added to your balance with absolutely no expiration date.",
               "Zero recurring monthly fees.",
@@ -41,7 +46,7 @@ export default function BillingModal({ open, onClose, onSelectPlan }: BillingMod
             price="$5"
             badge={<HeptagonBadge />}
             ctaLabel="Get standard plan"
-            onSelect={() => onSelectPlan?.("standard")}
+            onSelect={openPurchase}
             features={[
               "Value refill: A larger token drop for regular usage, providing better value per dollar.",
               "Higher usage limit.",
@@ -54,7 +59,7 @@ export default function BillingModal({ open, onClose, onSelectPlan }: BillingMod
             price="$10"
             badge={<StarBadge />}
             ctaLabel="Get mega plan"
-            onSelect={() => onSelectPlan?.("mega")}
+            onSelect={openPurchase}
             features={[
               "Maximum token volume: Our best cost-effective tier to maximize your output.",
               "Higher usage limit",

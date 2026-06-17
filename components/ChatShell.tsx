@@ -17,6 +17,7 @@ import { useChat } from "@/hooks/useChat";
 import { useRecentChats } from "@/hooks/useRecentChats";
 import ChatWindow from "./chat/ChatWindow";
 import ChatSkeleton from "./skeletons/ChatSkeleton";
+import IdeaFlow from "./idea/IdeaFlow";
 
 const modeOptions: ModeOption[] = [
   { id: "idea", label: "Idea", icon: Lightbulb },
@@ -78,7 +79,7 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
 
   const { items: recentChats, loading: recentChatsLoading, prependChat, updateTitle, reload: reloadRecentChats } = useRecentChats();
 
-  const { messages, sendMessage, loading: chatLoading, loadingConversation, streamingMessageId } = useChat(
+  const { conversationId, messages, ideaSummary, sendMessage, loading: chatLoading, loadingConversation, streamingMessageId, resetConversation } = useChat(
     initialConversationId,
     {
       onNewConversation: (chat) => prependChat(chat),
@@ -107,8 +108,17 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
   }
 
   const handleModeClick = (modeId: AppMode) => {
-    setModePillClicked(true);
-    setActiveMode((current) => (current === modeId ? null : modeId));
+    const isToggleOff = activeMode === modeId;
+    setModePillClicked(!isToggleOff);
+    setActiveMode(isToggleOff ? null : modeId);
+
+    const url = new URL(window.location.href);
+    if (isToggleOff) {
+      url.searchParams.delete("mode");
+    } else {
+      url.searchParams.set("mode", modeId);
+    }
+    window.history.replaceState(null, "", url.toString());
   };
 
   const handleChatSend = async () => {
@@ -124,7 +134,13 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
     onChange: setMessage,
     onSubmit: handleChatSend,
     activeMode: modePillClicked ? activeModeOption : null,
-    onClearMode: () => { setActiveMode(null); setModePillClicked(false); },
+    onClearMode: () => {
+      setActiveMode(null);
+      setModePillClicked(false);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("mode");
+      window.history.replaceState(null, "", url.toString());
+    },
     onModeSelect: (id: AppMode) => handleModeClick(id),
     modeOptions,
   };
@@ -154,7 +170,24 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
         />
 
         <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {loadingConversation ? (
+          {activeMode === "idea" || !!ideaSummary ? (
+            loadingConversation ? (
+              <ChatSkeleton />
+            ) : (
+              <IdeaFlow
+                user={session?.user ?? null}
+                conversationId={conversationId}
+                messages={messages}
+                initialSummary={ideaSummary}
+                loading={chatLoading}
+                streamingMessageId={streamingMessageId}
+                onSendMessage={(msg) => sendMessage(msg, "idea")}
+                onAuthRequired={() => setAuthOpen(true)}
+                onUpgradeRequired={() => setBillingOpen(true)}
+                onResetChat={resetConversation}
+              />
+            )
+          ) : loadingConversation ? (
             <ChatSkeleton />
           ) : messages.length > 0 ? (
             <>

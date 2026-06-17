@@ -10,8 +10,11 @@ interface AuthModalProps {
 }
 
 async function signInWithMigration(provider: string) {
-  // Tag the callbackUrl so the page knows to run migration after redirect
-  await signIn(provider, { callbackUrl: "/?migrate=1" });
+  // Preserve the current mode (and any other params) so the page restores the
+  // right context after the OAuth redirect, then tag it for guest migration.
+  const params = new URLSearchParams(window.location.search);
+  params.set("migrate", "1");
+  await signIn(provider, { callbackUrl: `/?${params.toString()}` });
 }
 
 const providers = [

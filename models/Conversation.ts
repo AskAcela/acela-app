@@ -28,6 +28,13 @@ const ConversationSchema = new Schema(
             trim: true,
         },
 
+        // Chat mode this conversation was created in
+        mode: {
+            type: String,
+            enum: ["ask", "explore", "idea"],
+            default: "ask",
+        },
+
         messageCount: {
             type: Number,
             default: 0,
@@ -55,6 +62,12 @@ const ConversationSchema = new Schema(
             type: Date,
             default: Date.now,
             index: true,
+        },
+
+        // Populated at the end of an Idea Mode session
+        ideaSummary: {
+            type: String,
+            default: null,
         },
     },
     {

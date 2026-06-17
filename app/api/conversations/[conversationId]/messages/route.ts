@@ -56,5 +56,6 @@ export async function GET(
             tokenCount: m.tokenCount ?? 0,
             creditsCharged: m.creditsCharged ?? 0,
         })),
+        ideaSummary: conversation.ideaSummary ?? null,
     });
 }

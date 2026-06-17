@@ -155,10 +155,37 @@ export async function POST(req: NextRequest) {
     { role: "user" as const, content: latestUserMessage },
   ];
 
+  const isIdeaMode = body.mode === "idea";
+  const isFreeAuth = userDoc.plan === "authenticated_free";
+
+  // Idea mode is authenticated-only — block guests at the API level too
+  if (isIdeaMode && userDoc.isGuest) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  // Free authenticated users get exactly one idea session at no cost.
+  // Guard: when starting a NEW idea conversation, count existing ones in the DB.
+  // This is robust — it doesn't depend on a flag being written correctly.
+  const freeIdeaSession = isIdeaMode && isFreeAuth;
+
+  if (isIdeaMode && isFreeAuth && isNewConversation) {
+    const existingIdeaCount = await Conversation.countDocuments({
+      userId: userDoc._id,
+      mode: "idea",
+    });
+    if (existingIdeaCount >= 1) {
+      return NextResponse.json(
+        { error: "Insufficient credits", creditsRemaining: userDoc.creditsRemaining },
+        { status: 402 }
+      );
+    }
+  }
+
   const estimatedTokens = estimateTokensFromMessages(agentMessages);
   const estimatedCredits = tokensToCredits(Math.ceil(estimatedTokens * 1.2));
 
-  if (userDoc.creditsRemaining < estimatedCredits) {
+  // Skip the credit pre-flight for free idea sessions
+  if (!freeIdeaSession && userDoc.creditsRemaining < estimatedCredits) {
     return NextResponse.json(
       {
         error: "Insufficient credits",
@@ -234,6 +261,7 @@ export async function POST(req: NextRequest) {
               _id: effectiveConvId,
               ...ownerQuery,
               title: conversationTitle,
+              mode: body.mode ?? "ask",
               messageCount: 0,
               tokensUsedTotal: 0,
               creditsChargedTotal: 0,
@@ -269,19 +297,30 @@ export async function POST(req: NextRequest) {
         { session: dbSession, ordered: true }
       );
 
-      const newCreditsRemaining = Math.max(0, currentUser.creditsRemaining - creditsCharged);
-
-      await User.updateOne(
-        { _id: currentUser._id },
-        {
-          $set: {
-            creditsRemaining: newCreditsRemaining,
-            lastSeenAt: new Date(),
+      if (freeIdeaSession) {
+        // No credit deduction. Mark the session as consumed only on the
+        // first message (new conversation) so subsequent messages in the
+        // same session aren't blocked on the next request.
+        await User.updateOne(
+          { _id: currentUser._id },
+          {
+            $set: {
+              lastSeenAt: new Date(),
+            },
           },
-          $inc: { creditsSpentTotal: creditsCharged },
-        },
-        { session: dbSession }
-      );
+          { session: dbSession }
+        );
+      } else {
+        const newCreditsRemaining = Math.max(0, currentUser.creditsRemaining - creditsCharged);
+        await User.updateOne(
+          { _id: currentUser._id },
+          {
+            $set: { creditsRemaining: newCreditsRemaining, lastSeenAt: new Date() },
+            $inc: { creditsSpentTotal: creditsCharged },
+          },
+          { session: dbSession }
+        );
+      }
 
       await Conversation.updateOne(
         { _id: effectiveConvId },
@@ -306,12 +345,15 @@ export async function POST(req: NextRequest) {
     dbSession.endSession();
   }
 
+  const actualCreditsCharged = freeIdeaSession ? 0 : creditsCharged;
   const response = NextResponse.json(
     {
       conversationId: effectiveConvId.toString(),
       reply: assistantText,
-      creditsRemaining: Math.max(0, userDoc.creditsRemaining - creditsCharged),
-      creditsCharged,
+      creditsRemaining: freeIdeaSession
+        ? userDoc.creditsRemaining
+        : Math.max(0, userDoc.creditsRemaining - creditsCharged),
+      creditsCharged: actualCreditsCharged,
       tokensUsed: totalTokensUsed,
       plan: userDoc.plan,
     },
