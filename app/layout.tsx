@@ -25,6 +25,9 @@ export default function RootLayout({
         lang="en"
         className={`${inter.variable} h-full antialiased dark`}
       >
+        <head>
+          <meta name="talentapp:project_verification" content="3902d5be684ff801a5e5bb9ca5a2a62ce67c5ddec2b8b97c582e24c776885df57034707203d778857f16b3bb0fd921fc1e5bb08c9f93f2d9f34448aad76a3771" />
+        </head>
         <body className="h-full bg-base text-text-1 overflow-hidden">
           <NotificationProvider>
             {children}
