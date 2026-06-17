@@ -4,10 +4,8 @@ import PlanCard from "../PlanCard";
 import { CircleBadge, HeptagonBadge, StarBadge } from "../PlanBadges";
 import Modal from "./Modal";
 
-const PURCHASE_URL = "https://t.me/+szDqEcFcKMEyMTk8";
-
 function openPurchase() {
-  window.open(PURCHASE_URL, "_blank", "noopener,noreferrer");
+  window.open("/api/go/plans", "_blank", "noopener,noreferrer");
 }
 
 interface BillingModalProps {
