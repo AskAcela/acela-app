@@ -326,6 +326,10 @@ export default function IdeaChat({
               </button>
             </div>
 
+            <p className="text-center text-xs text-text-faint">
+              Acela can make mistakes. Check important info.
+            </p>
+
             {/* End Session — secondary action */}
             <button
               onClick={() => onSessionEnd(DURATION - timeLeft)}

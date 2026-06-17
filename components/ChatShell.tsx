@@ -204,6 +204,9 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
                     className="w-full"
                     loading={chatLoading || !!streamingMessageId}
                   />
+                  <p className="text-center text-xs text-text-faint mt-2">
+                    Acela can make mistakes. Check important info.
+                  </p>
                 </div>
               </div>
             </>
@@ -259,6 +262,9 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
                       />
                     ))}
                   </div>
+                  <p className="text-center text-xs text-text-faint">
+                    Acela can make mistakes. Check important info.
+                  </p>
                 </div>
               </div>
             </div>
