@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
   }
 
   const agentUrl = process.env.AGENT_URL;
-  const chatEndpoint = `${agentUrl}/chat?mode=${body.mode ?? "ask"}`;
+  const chatEndpoint = `${agentUrl}/chat?mode=${body.mode ?? "ask"}&conversation_id=${effectiveConvId.toString()}`;
 
   if (!agentUrl) {
     return NextResponse.json(
