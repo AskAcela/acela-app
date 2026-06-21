@@ -93,8 +93,8 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
 
   if (sessionStatus === "loading") {
     return (
-      <div className="flex h-dvh bg-base overflow-hidden">
-        <div className="hidden md:flex h-dvh shrink-0 w-[92px] bg-base border-r border-white/5 animate-pulse" />
+      <div className="flex h-full bg-base overflow-hidden">
+        <div className="hidden md:flex h-full shrink-0 w-[92px] bg-base border-r border-white/5 animate-pulse" />
         <div className="flex flex-1 flex-col min-w-0">
           <div className="flex items-center justify-between px-4 py-4 md:px-6">
             <div className="h-6 w-6 rounded bg-white/5 animate-pulse md:hidden" />
@@ -146,7 +146,7 @@ export default function ChatShell({ initialConversationId }: ChatShellProps) {
   };
 
   return (
-    <div className="flex h-dvh bg-base overflow-hidden">
+    <div className="flex h-full bg-base overflow-hidden">
       <SidebarNav
         recentChats={recentChats}
         recentChatsLoading={recentChatsLoading}

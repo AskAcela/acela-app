@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { NotificationProvider } from "@/context/NotificationContext";
+import TelegramBanner from "@/components/TelegramBanner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -84,7 +85,7 @@ export default function RootLayout({
         <head>
           <meta name="talentapp:project_verification" content="3902d5be684ff801a5e5bb9ca5a2a62ce67c5ddec2b8b97c582e24c776885df57034707203d778857f16b3bb0fd921fc1e5bb08c9f93f2d9f34448aad76a3771" />
         </head>
-        <body className="h-full bg-base text-text-1 overflow-hidden">
+        <body className="flex h-full flex-col bg-base text-text-1 overflow-hidden">
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-3QE3470331"
             strategy="afterInteractive"
@@ -98,7 +99,8 @@ export default function RootLayout({
             `}
           </Script>
           <NotificationProvider>
-            {children}
+            <TelegramBanner />
+            <div className="min-h-0 flex-1">{children}</div>
           </NotificationProvider>
         </body>
       </html>

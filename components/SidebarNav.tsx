@@ -94,7 +94,7 @@ export default function SidebarNav({
 
       {/* ── DESKTOP: single sidebar that expands ── */}
       <div
-        className={`hidden md:flex flex-col h-dvh shrink-0 bg-base border-r border-white/5 py-5
+        className={`hidden md:flex flex-col h-full shrink-0 bg-base border-r border-white/5 py-5
           transition-[width] duration-300 ease-in-out overflow-hidden
           ${open ? "w-[260px]" : "w-[72px]"}`}
       >
