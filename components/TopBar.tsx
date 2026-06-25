@@ -53,9 +53,7 @@ export default function TopBar({ plan, onMenuClick, user, onUpgradeClick, openAu
         <AcelaLogo size={24} />
       </div>
 
-      {/* mobile: fixed → centers on viewport; desktop: absolute → centers on content area.
-          top-0 is flush to the screen in both cases since the TopBar starts at y=0. */}
-      <div className="fixed md:absolute top-0 left-1/2 -translate-x-1/2 z-40">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-40">
         {pill}
       </div>
 
